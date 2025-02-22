@@ -1,0 +1,74 @@
+<!-- <div class="container mt-5">
+    <h2>Enter your details</h2>
+    <form (ngSubmit)="onSubmit()" #form="ngForm">
+      <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <input type="text" class="form-control" id="name" [(ngModel)]="name" name="name" required />
+      </div>
+      <div class="mb-3">
+        <label for="rollNumber" class="form-label">Roll Number</label>
+        <input type="text" class="form-control" id="rollNumber" [(ngModel)]="rollNumber" name="rollNumber" required />
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+  </div> -->
+
+<div class="container mt-5">
+  <div class="card shadow-sm">
+    <div class="card-header text-center fw-bold">Enter Your Details</div>
+    <div class="card-body">
+      <form #form="ngForm" (ngSubmit)="onSubmit(form)">
+        <div class="mb-3">
+          <label for="name" class="form-label">Name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="name"
+            [(ngModel)]="name"
+            name="name"
+            required
+            #nameField="ngModel"
+          />
+          <div
+            *ngIf="nameField.invalid && nameField.touched"
+            class="text-danger"
+          >
+            Name is required.
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="rollNumber" class="form-label">Roll Number</label>
+          <input
+            type="text"
+            class="form-control"
+            id="rollNumber"
+            [(ngModel)]="rollNumber"
+            name="rollNumber"
+            required
+            minlength="9"
+            maxlength="9"
+            
+            #rollNumberField="ngModel"
+          />
+          <div
+            *ngIf="rollNumberField.invalid && rollNumberField.touched"
+            class="text-danger"
+          >
+            Valid roll number is required.
+          </div>
+        </div>
+
+        <div class="text-center">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="form.invalid"
+          >
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

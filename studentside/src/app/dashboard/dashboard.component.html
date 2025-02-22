@@ -1,0 +1,168 @@
+
+    
+    <!-- <nav class="navbar navbar-expand-lg navbar-dark bg-primary w-100">
+        <div class="container-fluid">
+          <a class="navbar-brand">Project Allotment Portal</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto"> 
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="selectedTab === 'all' " (click)="selectTab('all')">All Projects</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="selectedTab === 'eligible'" (click)="selectTab('eligible')">Eligible Projects</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="selectedTab === 'applied'" (click)="selectTab('applied')">Applied Projects</button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav> -->
+  
+      <div class="container-fluid mt-3 px-3">
+
+        <!-- Tabs navigation -->
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="selectedTab==='all'" (click)="selectTab('all')">All Projects</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="selectedTab==='eligible'" (click)="selectTab('eligible')">Eligible Projects</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="selectedTab==='profile'" (click)="selectTab('profile')">
+        Profile
+      </button>
+    </li>
+  </ul>
+
+  
+
+        <div class="mt-3">
+          <div *ngIf="selectedTab === 'all'">
+            <!-- <h4>All Projects</h4> -->
+            <!-- <ul class="list-group">
+              <li class="list-group-item" *ngFor="let project of allProjects">{{ project }}</li>
+            </ul> -->
+            <div class="container mt-4">
+              
+              <!-- <h2 class="mb-3">All Projects</h2> -->
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                  <thead class="table">
+                    <tr>
+                      <th scope="col" class="text-primary">Project Name</th>
+                      <th scope="col" class="text-primary">Professor Name</th>
+                      <th scope="col" class="text-primary">Branch</th>
+                      <th scope="col" class="text-primary">Year</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <ng-container *ngFor="let project of allProjects">
+                      <!-- Main project row -->
+                      <tr (click)="toggleProject(project.name)" class="table-row" style="cursor: pointer;">
+                        <td>{{ project.name }}</td>
+                        <td>{{ project.professor }}</td>
+                        <td>{{ project.branch.join(', ') }}</td>
+                        <td>{{ project.year.join(', ') }}</td>
+                      </tr>
+            
+                      <!-- Details row (expanded when clicked) -->
+                      <tr *ngIf="selectedProject === project.name">
+                        <td colspan="4" class="bg-light p-3">
+                          <div class="border p-3 rounded shadow-sm bg-light">
+                            <h5 class="text-primary">{{ project.name }}</h5>
+                            <!-- <p><strong>Professor:</strong> {{ project.professor }}</p>
+                            <p><strong>Branches:</strong> {{ project.branch.join(', ') }}</p>
+                            <p><strong>Year:</strong> {{ project.year.join(', ') }}</p> -->
+                            <p>{{ project.description }}</p>
+
+                            <div class="text-center"><button class="btn btn-primary mt-3" >Apply</button></div> 
+
+                          </div>
+                          <!-- <strong>Description:</strong> {{ project.description }} -->
+                        </td>
+                      </tr>
+                    </ng-container>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+          </div>
+  
+          <div *ngIf="selectedTab === 'eligible'">
+            <!-- <h4>Eligible Projects</h4>
+            <ul class="list-group">
+              <li class="list-group-item" *ngFor="let project of eligibleProjects">{{ project }}</li>
+            </ul> -->
+            <div class="container mt-4">
+              
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                  <thead class="table">
+                    <tr>
+                      <th scope="col" class="text-primary">Project Name</th>
+                      <th scope="col" class="text-primary">Professor Name</th>
+                      <th scope="col" class="text-primary">Branch</th>
+                      <th scope="col" class="text-primary">Year</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <ng-container *ngFor="let project of allProjects">
+                      <ng-container *ngIf="eligibleProjects.indexOf(project.name) !== -1">
+                      <!-- Main project row -->
+                      <tr (click)="toggleProject(project.name)" class="table-row" style="cursor: pointer;">
+                        <td>{{ project.name }}</td>
+                        <td>{{ project.professor }}</td>
+                        <td>{{ project.branch.join(', ') }}</td>
+                        <td>{{ project.year.join(', ') }}</td>
+                      </tr>
+            
+                      <!-- Details row (expanded when clicked) -->
+                      <tr *ngIf="selectedProject === project.name">
+                        <td colspan="4" class="bg-light p-3">
+                          <div class="border p-3 rounded shadow-sm bg-light">
+                            <h5 class="text-primary">{{ project.name }}</h5>
+                            <!-- <p><strong>Professor:</strong> {{ project.professor }}</p>
+                            <p><strong>Branches:</strong> {{ project.branch.join(', ') }}</p>
+                            <p><strong>Year:</strong> {{ project.year.join(', ') }}</p> -->
+                            <p>{{ project.description }}</p>
+
+                            <div class="text-center"><button class="btn btn-primary mt-3" >Apply</button></div> 
+
+                          </div>
+                          <!-- <strong>Description:</strong> {{ project.description }} -->
+                        </td>
+                      </tr>
+                    </ng-container>
+                    </ng-container>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="selectedTab === 'profile'">
+
+            <div class="card">
+              <div class="card-body">
+                <p><strong>Name:</strong> {{ this.name }}</p>
+                <p><strong>Branch:</strong> {{ this.branch }}</p>
+                <p><strong>Semester:</strong> {{ this.sem }}</p>
+                <p><strong>Degree:</strong> {{ this.degree }}</p>
+                <p><strong>Roll Number:</strong> {{ this.rollNumber }}</p>
+              </div>
+            </div>
+          </div>
+  
+          <div *ngIf="selectedTab === 'applied'">
+            <h4>Applied Projects</h4>
+            <ul class="list-group">
+              <li class="list-group-item" *ngFor="let project of appliedProjects">{{ project }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
