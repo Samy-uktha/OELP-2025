@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { InputService } from '../input.service';
 import { CommonModule } from '@angular/common';
 import { ProjectdataService } from '../projectdata.service';
+import { Dept, Student, Project } from '../interfaces';
 
 @Component({
   selector: 'app-dashboard',
@@ -17,18 +18,17 @@ export class DashboardComponent implements OnInit {
   yearCode: string = '';
   degreeCode: string = '';
   roll: string = '';
-  branch: string = '';
+  branch: Dept = Dept.CE;
   year: string='';
   sem: string='';
   degree: string='';
+  cgpa: number=0;
 
   selectedTab: string = 'all';
 
-  // allProjects: string[] = ['Project A', 'Project B', 'Project C', 'Project D'];
-  // eligibleProjects: string[] = ['Project A', 'Project C'];
-  // appliedProjects: string[] = ['Project B'];
-  allProjects: { name: string, professor: string, branch: string[], year: number[], description: string }[] = [];
-  eligibleProjects: string[] = [];
+
+  allProjects: Project[] = [];
+  eligibleProjects: Project[] = [];
   appliedProjects: string[] = [];
 
   selectedProject: string | null = null; // Stores the currently expanded project
@@ -38,19 +38,20 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
     this.name = this.dataService.getData('name');
     this.rollNumber = this.dataService.getData('rollNumber');
-    this.branch = this.dataService.getData('branch');
+    this.branch = this.dataService.getData('branch') as Dept;
     this.year = this.dataService.getData('year');
     this.degree = this.dataService.getData('degree');
     this.sem = this.dataService.getData('semester');
     this.roll = this.dataService.getData('roll');
+    this.cgpa = this.dataService.getData('cgpa');
 
 
-    const studentInfo = {
+    const studentInfo: Student = {
+      roll: this.rollNumber,
       branch: this.branch,
       degree: this.degree,
       year: 2025-parseInt(this.year),
-      cgpa: 9.5  // Fetch actual CGPA dynamically if available
-      // completedCourses: ['DSA'] // Fetch actual completed courses dynamically if available
+      cgpa: this.cgpa,
     };
     console.log(studentInfo)
     this.allProjects = this.projectService.getAllProjects();
@@ -66,6 +67,10 @@ export class DashboardComponent implements OnInit {
     this.selectedProject = this.selectedProject === projectName ? null : projectName;
   }
 
-
+  get eligibleProjectDetails(): Project[] {
+    return this.allProjects.filter(p =>
+      this.eligibleProjects.some(ep => ep.name === p.name)
+    );
+  }
 
 }

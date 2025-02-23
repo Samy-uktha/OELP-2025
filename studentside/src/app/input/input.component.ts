@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgForm } from '@angular/forms';
 import { InputService } from '../input.service';
+import { Dept, Student } from '../interfaces';
 
 @Component({
   selector: 'app-input',
@@ -14,6 +15,7 @@ import { InputService } from '../input.service';
 export class InputComponent {
   name: string = '';
   rollNumber: string = '';
+  cgpa: number = 0;
 
   constructor(private router: Router, private dataService: InputService) {}
 
@@ -25,7 +27,7 @@ export class InputComponent {
       const degreeCode = this.rollNumber.substring(4,6);
       const roll = this.rollNumber.substring(6,9);
       
-      const branch = this.getBranch(branchCode);
+      const branch: Dept = this.getBranch(branchCode);
       const year = '20'+(yearCode)
       const degree = this.getDegree(degreeCode)
       const sem = this.getSem(yearCode);
@@ -37,22 +39,24 @@ export class InputComponent {
       this.dataService.setData('degree', degree);
       this.dataService.setData('roll', roll);
       this.dataService.setData('semester', sem);
-      
+      this.dataService.setData('cgpa',this.cgpa);
+
       this.router.navigate(['/dashboard']);
     }
     
     }
   
-  getBranch(code:string): string{
-    const branchMap: {[key:string]:string} = {
-      '10':'CE',
-      '11':'CSE',
-      '12':'EE',
-      '13':'ME',
-      '14':'DSE'
+  getBranch(code:string): Dept{
+    const branchMap: {[key:string]:Dept} = {
+      '10':Dept.CE,
+      '11':Dept.CS,
+      '12':Dept.EE,
+      '13':Dept.ME,
+      '14':Dept.DS
     };
     return branchMap[code] || 'Undefined';
     }
+     
   getDegree(code:string): string{
     const degreeMap: {[key:string]:string} = {
       '01':'BTech',
