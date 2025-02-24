@@ -41,12 +41,11 @@ export class LoginComponent implements OnInit {
     if (faculty) {
       alert('Login Successful!');
       this.faculty = faculty;
-      console.log('Faculty Data:', this.faculty);  // Check console for data
+      console.log('Faculty Data:', this.faculty);
       localStorage.setItem('faculty', JSON.stringify(this.faculty));
       
       this.router.navigate(['faculty-dashboard']);
-      
-      // Navigate to dashboard or perform further actions
+
     } else {
       this.loginError = 'Invalid email or password';
     }

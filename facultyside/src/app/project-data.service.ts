@@ -1,12 +1,48 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { Student,Project, projApplication, Status, Faculty, Dept  } from './interfaces';
+import { Student,Project, projApplication, Status, Faculty, Dept, Course  } from './interfaces';
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectDataService {
   
   constructor() { }
+
+  private courses: Course[] = [
+    {
+      courseId : 1,
+      courseName : "Data Structures and algorithms",
+      courseCode : "CS2025",
+      credits : 3,
+      offeredBy : Dept.CS
+
+    },
+    {
+      courseId : 2,
+      courseName : "Introduction to AI",
+      courseCode : "DS2025",
+      credits : 4,
+      offeredBy : Dept.DS
+
+    },
+    {
+      courseId : 3,
+      courseName : "Machine Learning",
+      courseCode : "DS4235",
+      credits : 5,
+      offeredBy : Dept.DS
+
+    },
+    {
+      courseId : 4,
+      courseName : "Probability and Statistics",
+      courseCode : "MT1025",
+      credits : 3,
+      offeredBy : Dept.CS
+
+    },
+
+  ]
 
   private students: Student[] = [
     {
@@ -113,5 +149,9 @@ export class ProjectDataService {
 
   getApplications(): Observable<projApplication[]> {
     return of(this.applications);
+  }
+
+  getCourses() : Observable<Course[]>{
+    return of(this.courses);
   }
 }

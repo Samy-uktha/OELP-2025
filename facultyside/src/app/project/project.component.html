@@ -1,0 +1,139 @@
+
+
+
+  <div class="container-fluid mt-4">
+	<div class="row">
+	  <div class="col-md">
+		<div class="card shadow-lg border-0 rounded-4">
+		  <div class="card-body bg-light">
+			<h5 class="fw-bold text-primary text-center">Project Details</h5>
+			<hr>
+			<div *ngIf="!isEditing">
+			  <div class="px-3">
+				<p class="mb-2"><strong>Name:</strong></p>
+				<p class="text-secondary">{{ project.title }}</p>
+  
+				<p class="mb-2"><strong>ID:</strong></p>
+				<p class="text-secondary">{{ project.projectId }}</p>
+  
+				<p class="mb-2"><strong>Description:</strong></p>
+				<p class="text-secondary">{{ project.description }}</p>
+
+				<p class="mb-2"><strong>Slots available:</strong></p>
+				<p class="text-secondary">{{ project.slotsAvailable }}</p>
+
+				<p class="mb-2"><strong>Students per team:</strong></p>
+				<p class="text-secondary">{{ project.studentsPerTeam }}</p>
+
+
+				<div class="mb-3">
+					<label class="form-label fw-bold">Departments</label>
+					<div *ngFor="let dept of project.eligibilityCriteria.departments">
+					  {{ dept }}
+					</div>
+				  </div>
+
+				  <div>
+					<label class="form-label fw-bold">Prerequisite courses</label>
+					<ul class="list-group mt-2">
+						<li *ngFor="let course of project.eligibilityCriteria.requiredCourses" 
+							class="list-group-item d-flex justify-content-between align-items-center">
+						  {{ course.courseName }} ({{ course.courseCode }})
+						</li>
+					  </ul>
+				  </div>
+
+				  <p class="mb-2"><strong>Minimum CGPA required:</strong></p>
+				<p class="text-secondary">{{ project.eligibilityCriteria.minCgpa }}</p>
+				
+				<p class="mb-2"><strong>Minimum Semester:</strong></p>
+				<p class="text-secondary">{{ project.eligibilityCriteria.minSemester }}</p>
+
+			  </div>
+			  <button class="btn btn-primary btn-sm mt-2" (click)="toggleEdit()">Edit</button>
+			</div>
+			<div *ngIf="isEditing">
+			  <div class="px-3">
+				<label><strong>Name:</strong></label>
+				<input type="text" class="form-control form-control-sm mb-2" [(ngModel)]="editableProject.title">
+  
+				<!-- <label><strong>ID:</strong></label>
+				<input type="number" class="form-control form-control-sm mb-2" [(ngModel)]="editableProject.projectId"> -->
+  
+				<label><strong>Description:</strong></label>
+				<textarea class="form-control form-control-sm mb-2" [(ngModel)]="editableProject.description"></textarea>
+
+				<label><strong>Slots available:</strong></label>
+				<input type="number" class="form-control form-control-sm mb-2" [(ngModel)]="editableProject.slotsAvailable " min="1" required>
+
+				<label><strong>No. of students in a team</strong></label>
+				<input type="number" class="form-control form-control-sm mb-2" [(ngModel)]="editableProject.studentsPerTeam" min="1" required>
+				
+
+				<div class="mb-3">
+					<label class="form-label fw-bold">Departments eligible </label>
+					<div *ngFor="let dept of availableDepartments">
+					  <input 
+						type="checkbox" 
+						[value]="dept" 
+						(change)="toggleDepartment(dept, $event)"
+						[checked]="editableProject.eligibilityCriteria.departments.toString().includes(dept)"
+					  />
+					  {{ dept }}
+					</div>
+
+
+					<div class="mb-3">
+						<label class="form-label fw-bold">Required Courses</label>
+						<div class="input-group">
+						  <input type="text" class="form-control" [(ngModel)]="searchQuery" (input)="searchCourses()" placeholder="Search courses...">
+						</div>
+						<ul class="list-group mt-2" *ngIf="filteredCourses.length > 0">
+						  <li *ngFor="let course of filteredCourses" class="list-group-item d-flex justify-content-between align-items-center">
+							{{ course.courseName }} ({{ course.courseCode }})
+							<button class="btn btn-sm btn-success" (click)="addCourse(course)">+</button>
+						  </li>
+						</ul>
+					  </div>
+
+					  <ul class="list-group mt-2">
+						<li *ngFor="let course of editableProject.eligibilityCriteria.requiredCourses" 
+							class="list-group-item d-flex justify-content-between align-items-center">
+						  {{ course.courseName }} ({{ course.courseCode }})
+						  <button class="btn btn-sm btn-danger" (click)="removeCourse(course)">x</button>
+						</li>
+					  </ul>
+
+					  <label><strong>Minimum CGPA</strong></label>
+						<input type="number" class="form-control form-control-sm mb-2" [(ngModel)]="editableProject.eligibilityCriteria.minCgpa" min="1" max="10">
+
+						<label><strong>Minimum Semester</strong></label>
+						<input type="number" class="form-control form-control-sm mb-2" [(ngModel)]="editableProject.eligibilityCriteria.minSemester" min="1" max="8">
+				  </div>
+				  
+				  
+
+				
+
+
+
+
+			  </div>
+			  <div *ngIf="isEditing">
+				<button class="btn btn-success btn-sm me-2" (click)="saveChanges()">Save</button>
+				<button class="btn btn-secondary btn-sm" (click)="cancelChanges()">Cancel</button>
+			  </div>
+			</div>
+  
+		  </div>
+		</div>
+	  </div>
+	</div>
+  </div>
+
+
+  
+
+  
+  
+  

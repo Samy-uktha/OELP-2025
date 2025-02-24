@@ -5,12 +5,13 @@ import { NgbNav, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { CommonModule } from '@angular/common';
 import { ProjectManagementComponent } from "../project-management/project-management.component";
 import { SideBarComponent } from "../side-bar/side-bar.component";
+import { ProfileComponent } from "../profile/profile.component";
 
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, NgbNavModule, ProjectManagementComponent, SideBarComponent],
+  imports: [CommonModule, NgbNavModule, ProjectManagementComponent, SideBarComponent, ProfileComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
@@ -24,7 +25,14 @@ export class HomeComponent {
   // showTables : boolean = true;
   // showApplications : boolean = false;
   isProfile : boolean = false;
-  selectedTab: string = "projects"; 
+  selectedTab = 'profile'; // Default selected tab
+  new_project : Project = {} as Project;
+
+  tabs = [
+    { key: 'profile', label: 'Profile' },
+    { key: 'projects', label: 'Projects' },
+    { key: 'applications', label: 'Applications' }
+  ];
 
   constructor (private service : ProjectDataService){}
 
@@ -52,7 +60,7 @@ export class HomeComponent {
 
     this.service.getProjects().subscribe({
       next: (data) => {
-        // Filter projects where facultyId matches the logged-in faculty's ID
+        //to filter projects where facultyId matches the logged-in faculty's ID
         this.projects = data.filter((project: any) => project.facultyId === this.faculty?.facultyId);
         console.log(this.projects);
       },
@@ -81,6 +89,12 @@ export class HomeComponent {
   // trackProjectById(index: number, project: any): number {
   //   return project.projectId;
   // }
+
+  getnew(event : Project){
+   this.new_project = event;
+   this.new_project.facultyId = this.faculty.facultyId;
+   this.projects.push(this.new_project);
+  }
 
 
 }
