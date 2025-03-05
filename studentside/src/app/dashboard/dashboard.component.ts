@@ -47,11 +47,13 @@ export class DashboardComponent implements OnInit {
 
 
     const studentInfo: Student = {
+      name: this.name,
       roll: this.rollNumber,
       branch: this.branch,
       degree: this.degree,
       year: 2025-parseInt(this.year),
       cgpa: this.cgpa,
+      applied: [],
     };
     console.log(studentInfo)
     this.allProjects = this.projectService.getAllProjects();

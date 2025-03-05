@@ -8,7 +8,9 @@ export enum Dept {
   
   export interface Project {
     name: string;
-    professor: string;
+    faculty: string;
+    projectId: number;
+    facultyId: number;
     branch: Dept[]; 
     degree: string[]; 
     year: number[];   
@@ -17,9 +19,11 @@ export enum Dept {
   }
   
   export interface Student {
+    name: string,
     roll: string;
     branch: Dept;
     degree: string;
     year: number;
     cgpa: number;
+    applied: string[];
   }
