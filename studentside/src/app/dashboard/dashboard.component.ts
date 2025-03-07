@@ -12,12 +12,12 @@ import { Dept, Student, Project } from '../interfaces';
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
-  rollNumber: string = '';
+  roll: string = '';
   name: string = '';
   branchCode: string = '';
   yearCode: string = '';
   degreeCode: string = '';
-  roll: string = '';
+  // roll: string = '';
   branch: Dept = Dept.CE;
   year: string='';
   sem: string='';
@@ -37,7 +37,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit() {
     // this.name = this.dataService.getData('name');
-    // this.rollNumber = this.dataService.getData('rollNumber');
+    // this.roll = this.dataService.getData('roll');
     // this.branch = this.dataService.getData('branch') as Dept;
     // this.year = this.dataService.getData('year');
     // this.degree = this.dataService.getData('degree');
@@ -48,7 +48,7 @@ export class DashboardComponent implements OnInit {
 
     // const studentInfo: Student = {
     //   name: this.name,
-    //   roll: this.rollNumber,
+    //   roll: this.roll,
     //   branch: this.branch,
     //   degree: this.degree,
     //   year: Number(2025-parseInt(this.year)),
@@ -66,7 +66,7 @@ export class DashboardComponent implements OnInit {
     const studentData: Student = JSON.parse(storedStudent);
     
     this.name = studentData.name;
-    this.rollNumber = studentData.roll;
+    this.roll = studentData.roll;
     this.branch = studentData.branch;
     this.year = studentData.year.toString();
     this.degree = studentData.degree;
@@ -81,7 +81,7 @@ export class DashboardComponent implements OnInit {
   this.allProjects = this.projectService.getAllProjects();
   this.eligibleProjects = this.projectService.getEligibleProjects({
     name: this.name,
-    roll: this.rollNumber,
+    roll: this.roll,
     branch: this.branch,
     degree: this.degree,
     year: Number(this.year),

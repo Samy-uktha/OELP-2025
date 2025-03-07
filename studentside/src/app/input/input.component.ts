@@ -15,7 +15,7 @@ import { Dept, Student } from '../interfaces';
 })
 export class InputComponent {
   name: string = '';
-  rollNumber: string = '';
+  roll: string = '';
   cgpa: number = 0;
   isNewStudent: boolean = false;  // Flag for new students
   errorMessage: string = '';
@@ -23,11 +23,11 @@ export class InputComponent {
   constructor(private router: Router, private studentService: StudentService, private http: HttpClient) {}
 
   // Extract details from roll number
-  extractStudentDetails(rollNumber: string) {
-    const branchCode = rollNumber.substring(0, 2);
-    const yearCode = rollNumber.substring(2, 4);
-    const degreeCode = rollNumber.substring(4, 6);
-    const roll = rollNumber.substring(6, 9);
+  extractStudentDetails(roll: string) {
+    const branchCode = roll.substring(0, 2);
+    const yearCode = roll.substring(2, 4);
+    const degreeCode = roll.substring(4, 6);
+    // const roll = roll.substring(6, 9);
 
     return {
       branch: this.getBranch(branchCode),
@@ -40,8 +40,8 @@ export class InputComponent {
 
   // Check if the student exists when roll number is entered
   checkStudent() {
-    if (this.rollNumber.length === 9) {
-      this.studentService.getStudent(this.rollNumber).subscribe(
+    if (this.roll.length === 9) {
+      this.studentService.getStudent(this.roll).subscribe(
         (student) => {
           if (student.name === this.name) {
             this.isNewStudent = false;
@@ -68,12 +68,12 @@ export class InputComponent {
   onSubmit(form: any) {
     if (!form.valid) return;
 
-    const details = this.extractStudentDetails(this.rollNumber);
+    const details = this.extractStudentDetails(this.roll);
   
-    // const branchCode = this.rollNumber.substring(0, 2);
-    // const yearCode = this.rollNumber.substring(2, 4);
-    // const degreeCode = this.rollNumber.substring(4, 6);
-    // const roll = this.rollNumber.substring(6, 9);
+    // const branchCode = this.roll.substring(0, 2);
+    // const yearCode = this.roll.substring(2, 4);
+    // const degreeCode = this.roll.substring(4, 6);
+    // const roll = this.roll.substring(6, 9);
   
     // const branch: Dept = this.getBranch(branchCode);
     // const year = '20' + yearCode;
@@ -81,7 +81,7 @@ export class InputComponent {
     // const sem = this.getSem(yearCode);
   
     // Check if student exists
-    this.studentService.getStudent(this.rollNumber).subscribe(
+    this.studentService.getStudent(this.roll).subscribe(
       (student) => {
         if (student && student.name === this.name) {
           // Existing student login
@@ -104,14 +104,14 @@ export class InputComponent {
   }
   
   registerNewStudent(details: {branch: Dept, degree: string, roll: string, year: number}) {
-    if (!this.name || !this.rollNumber || !this.cgpa) {
+    if (!this.name || !this.roll || !this.cgpa) {
       this.errorMessage = 'Please enter all details.';
       return;
     }
   
     const newStudent: Student = {
       name: this.name,
-      roll: this.rollNumber,
+      roll: this.roll,
       cgpa: this.cgpa,
       branch: details.branch,
       degree: details.degree,
@@ -141,7 +141,7 @@ export class InputComponent {
 
     localStorage.setItem('student', JSON.stringify({
       name: student.name,
-      rollNumber: student.roll,
+      roll: student.roll,
       branch: student.branch,
       year: student.year,
       degree: student.degree,

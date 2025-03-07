@@ -25,7 +25,7 @@ def save_students(data):
 @app.route("/student/<roll_number>", methods=["GET"])
 def get_student(roll_number):
     students = load_students()["students"]
-    student = next((s for s in students if s["rollNumber"] == roll_number), None)
+    student = next((s for s in students if s["roll"] == roll_number), None)
     
     if student:
         return jsonify(student)
@@ -40,12 +40,12 @@ def register_student():
     
     # Check if student already exists
     for student in students_data["students"]:
-        if student["rollNumber"] == new_student["roll"]:
+        if student["roll"] == new_student["roll"]:
             return jsonify({"message": "Student already registered"}), 400
 
     # Add student with all details
     student_entry = {
-        "rollNumber": new_student["roll"],
+        "roll": new_student["roll"],
         "name": new_student["name"],
         "cgpa": new_student["cgpa"],
         "branch": new_student.get("branch", "Unknown"),
@@ -65,13 +65,13 @@ def register_student():
 # @app.route("/apply", methods=["POST"])
 # def apply_project():
 #     data = request.json
-#     roll_number = data["rollNumber"]
+#     roll_number = data["roll"]
 #     project = data["project"]
 
 #     students_data = load_students()
 
 #     for student in students_data["students"]:
-#         if student["rollNumber"] == roll_number:
+#         if student["roll"] == roll_number:
 #             if project not in student["applied_projects"]:
 #                 student["applied_projects"].append(project)
 #                 save_students(students_data)

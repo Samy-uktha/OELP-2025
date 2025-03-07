@@ -11,16 +11,16 @@ export class StudentService {
 
   constructor(private http: HttpClient) {}
 
-  getStudent(rollNumber: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/student/${rollNumber}`);
+  getStudent(roll: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/student/${roll}`);
   }
 
   registerStudent(student: Student): Observable<{ message: string }>{
     return this.http.post<{ message: string }>(`${this.apiUrl}/register`,student);
   }
 
-  applyForProject(rollNumber: string, project: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/apply`, { rollNumber, project });
+  applyForProject(roll: string, project: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/apply`, { roll, project });
   }
 }
 
