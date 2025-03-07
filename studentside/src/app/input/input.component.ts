@@ -22,50 +22,70 @@ export class InputComponent {
 
   constructor(private router: Router, private studentService: StudentService, private http: HttpClient) {}
 
+  // Extract details from roll number
+  extractStudentDetails(rollNumber: string) {
+    const branchCode = rollNumber.substring(0, 2);
+    const yearCode = rollNumber.substring(2, 4);
+    const degreeCode = rollNumber.substring(4, 6);
+    const roll = rollNumber.substring(6, 9);
+
+    return {
+      branch: this.getBranch(branchCode),
+      year: 2025 -  Number('20' + yearCode), // Ensure year is a number
+      degree: this.getDegree(degreeCode),
+      // sem: Number(this.getSem(yearCode)),
+      roll,
+    };
+  }
+
   // Check if the student exists when roll number is entered
-  // checkStudent() {
-  //   if (this.rollNumber.length === 9) {
-  //     this.studentService.getStudent(this.rollNumber).subscribe(
-  //       (student) => {
-  //         if (student.name === this.name) {
-  //           this.isNewStudent = false;
-  //           this.errorMessage = '';
-  //         } else {
-  //           this.errorMessage = 'Incorrect name or roll number.';
-  //         }
-  //       },
-  //       (error) => {
-  //         if (error.status === 404) {
-  //           this.isNewStudent = true; // New student detected
-  //           this.errorMessage = '';
-  //         } else {
-  //           this.errorMessage = 'Error checking student data.';
-  //         }
-  //       }
-  //     );
-  //   }
-  // }
+  checkStudent() {
+    if (this.rollNumber.length === 9) {
+      this.studentService.getStudent(this.rollNumber).subscribe(
+        (student) => {
+          if (student.name === this.name) {
+            this.isNewStudent = false;
+            this.cgpa = student.cgpa;
+            this.errorMessage = '';
+          } else {
+            this.errorMessage = 'Incorrect name or roll number.';
+          }
+        },
+        (error) => {
+          if (error.status === 404) {
+            this.isNewStudent = true; // New student detected
+            this.cgpa = 0;
+            this.errorMessage = '';
+          } else {
+            this.errorMessage = 'Error checking student data.';
+          }
+        }
+      );
+    }
+  }
 
   // Form submission handling
   onSubmit(form: any) {
     if (!form.valid) return;
+
+    const details = this.extractStudentDetails(this.rollNumber);
   
-    const branchCode = this.rollNumber.substring(0, 2);
-    const yearCode = this.rollNumber.substring(2, 4);
-    const degreeCode = this.rollNumber.substring(4, 6);
-    const roll = this.rollNumber.substring(6, 9);
+    // const branchCode = this.rollNumber.substring(0, 2);
+    // const yearCode = this.rollNumber.substring(2, 4);
+    // const degreeCode = this.rollNumber.substring(4, 6);
+    // const roll = this.rollNumber.substring(6, 9);
   
-    const branch: Dept = this.getBranch(branchCode);
-    const year = '20' + yearCode;
-    const degree = this.getDegree(degreeCode);
-    const sem = this.getSem(yearCode);
+    // const branch: Dept = this.getBranch(branchCode);
+    // const year = '20' + yearCode;
+    // const degree = this.getDegree(degreeCode);
+    // const sem = this.getSem(yearCode);
   
     // Check if student exists
     this.studentService.getStudent(this.rollNumber).subscribe(
       (student) => {
         if (student && student.name === this.name) {
           // Existing student login
-          this.storeStudentData(student, branch, year, degree, roll, sem);
+          this.storeStudentData(student);
           this.router.navigate(['/dashboard']);
         } else {
           this.errorMessage = 'Incorrect name or roll number.';
@@ -75,7 +95,7 @@ export class InputComponent {
         if (error.status === 404) {
           // Student not found → New student registration
           this.isNewStudent = true;
-          this.registerNewStudent(branch, year, degree, roll, sem);
+          this.registerNewStudent(details);
         } else {
           this.errorMessage = 'An error occurred while logging in.';
         }
@@ -83,43 +103,49 @@ export class InputComponent {
     );
   }
   
-  registerNewStudent(branch: Dept, year: string, degree: string, roll: string, sem: string) {
+  registerNewStudent(details: {branch: Dept, degree: string, roll: string, year: number}) {
     if (!this.name || !this.rollNumber || !this.cgpa) {
       this.errorMessage = 'Please enter all details.';
       return;
     }
   
-    this.studentService.registerStudent(this.name, this.rollNumber, this.cgpa).subscribe(
+    const newStudent: Student = {
+      name: this.name,
+      roll: this.rollNumber,
+      cgpa: this.cgpa,
+      branch: details.branch,
+      degree: details.degree,
+      year: details.year,
+      // sem: details.sem,
+      applied: [], // Initialize applied projects as empty array
+    };
+
+    console.log("sending data to backend",newStudent)
+  
+    this.studentService.registerStudent(newStudent).subscribe(
       (response) => {
         alert(response.message);
-        const newStudent: Student = {
-          name: this.name,
-          roll: this.rollNumber,
-          cgpa: this.cgpa,
-          applied: [],
-          branch: branch,
-          degree: degree,
-          year: Number(year),
-        };
-        this.storeStudentData(newStudent, branch, year, degree, roll, sem);
+        this.storeStudentData(newStudent);
         this.router.navigate(['/dashboard']);
       },
       (error) => {
-        this.errorMessage = error.error.message || 'Registration failed.';
+        this.errorMessage = error.error?.message || 'Registration failed.';
       }
     );
   }
   
+  
   // Store student details in InputService
-  private storeStudentData(student: Student, branch: Dept, year: string, degree: string, roll: string, sem: string) {
+  private storeStudentData(student: Student) {
+    console.log("storing", student)
+
     localStorage.setItem('student', JSON.stringify({
       name: student.name,
       rollNumber: student.roll,
-      branch: branch,
-      year: year,
-      degree: degree,
-      roll: roll,
-      semester: sem,
+      branch: student.branch,
+      year: student.year,
+      degree: student.degree,
+      // semester: student.sem,
       cgpa: student.cgpa,
       appliedProjects: student.applied || []
     }));
@@ -157,3 +183,5 @@ export class InputComponent {
     return semMap[code] || 'Undefined';
   }
 }
+
+

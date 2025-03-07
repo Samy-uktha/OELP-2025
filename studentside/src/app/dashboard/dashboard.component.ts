@@ -51,7 +51,7 @@ export class DashboardComponent implements OnInit {
       roll: this.rollNumber,
       branch: this.branch,
       degree: this.degree,
-      year: 2025-parseInt(this.year),
+      year: Number(2025-parseInt(this.year)),
       cgpa: this.cgpa,
       applied: [],
     };
