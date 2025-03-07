@@ -36,30 +36,58 @@ export class DashboardComponent implements OnInit {
   constructor(private route: ActivatedRoute, private dataService: InputService, private projectService: ProjectdataService ) {}
 
   ngOnInit() {
-    this.name = this.dataService.getData('name');
-    this.rollNumber = this.dataService.getData('rollNumber');
-    this.branch = this.dataService.getData('branch') as Dept;
-    this.year = this.dataService.getData('year');
-    this.degree = this.dataService.getData('degree');
-    this.sem = this.dataService.getData('semester');
-    this.roll = this.dataService.getData('roll');
-    this.cgpa = this.dataService.getData('cgpa');
+    // this.name = this.dataService.getData('name');
+    // this.rollNumber = this.dataService.getData('rollNumber');
+    // this.branch = this.dataService.getData('branch') as Dept;
+    // this.year = this.dataService.getData('year');
+    // this.degree = this.dataService.getData('degree');
+    // this.sem = this.dataService.getData('semester');
+    // this.roll = this.dataService.getData('roll');
+    // this.cgpa = this.dataService.getData('cgpa');
 
 
-    const studentInfo: Student = {
-      name: this.name,
-      roll: this.rollNumber,
-      branch: this.branch,
-      degree: this.degree,
-      year: Number(2025-parseInt(this.year)),
-      cgpa: this.cgpa,
-      applied: [],
-    };
-    console.log(studentInfo)
-    this.allProjects = this.projectService.getAllProjects();
-    this.eligibleProjects = this.projectService.getEligibleProjects(studentInfo);
-    console.log("eligible",this.eligibleProjects)
-    this.appliedProjects = this.projectService.getAppliedProjects();
+    // const studentInfo: Student = {
+    //   name: this.name,
+    //   roll: this.rollNumber,
+    //   branch: this.branch,
+    //   degree: this.degree,
+    //   year: Number(2025-parseInt(this.year)),
+    //   cgpa: this.cgpa,
+    //   applied: [],
+    // };
+    // console.log(studentInfo)
+    // this.allProjects = this.projectService.getAllProjects();
+    // this.eligibleProjects = this.projectService.getEligibleProjects(studentInfo);
+    // console.log("eligible",this.eligibleProjects)
+    // this.appliedProjects = this.projectService.getAppliedProjects();
+
+    const storedStudent = localStorage.getItem('student');
+  if (storedStudent) {
+    const studentData: Student = JSON.parse(storedStudent);
+    
+    this.name = studentData.name;
+    this.rollNumber = studentData.roll;
+    this.branch = studentData.branch;
+    this.year = studentData.year.toString();
+    this.degree = studentData.degree;
+    this.cgpa = studentData.cgpa;
+    this.appliedProjects = studentData.applied || [];
+  } else {
+    console.error("No student data found in localStorage");
+  }
+
+  console.log("received student", storedStudent)
+  // Fetch projects
+  this.allProjects = this.projectService.getAllProjects();
+  this.eligibleProjects = this.projectService.getEligibleProjects({
+    name: this.name,
+    roll: this.rollNumber,
+    branch: this.branch,
+    degree: this.degree,
+    year: Number(this.year),
+    cgpa: this.cgpa,
+    applied: this.appliedProjects,
+  });
   }
   selectTab(tab: string) {
     this.selectedTab = tab;

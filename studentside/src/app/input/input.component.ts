@@ -120,7 +120,7 @@ export class InputComponent {
       applied: [], // Initialize applied projects as empty array
     };
 
-    console.log("sending data to backend",newStudent)
+    console.log("registering new student",newStudent)
   
     this.studentService.registerStudent(newStudent).subscribe(
       (response) => {
@@ -137,7 +137,7 @@ export class InputComponent {
   
   // Store student details in InputService
   private storeStudentData(student: Student) {
-    console.log("storing", student)
+    console.log("storing student data", student)
 
     localStorage.setItem('student', JSON.stringify({
       name: student.name,

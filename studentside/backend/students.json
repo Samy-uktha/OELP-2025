@@ -8,6 +8,24 @@
             "degree": "BTech",
             "year": 3,
             "applied_projects": []
+        },
+        {
+            "rollNumber": "122201003",
+            "name": "Sneha",
+            "cgpa": 9.6,
+            "branch": "Electrical Engineering",
+            "degree": "BTech",
+            "year": 3,
+            "applied_projects": []
+        },
+        {
+            "rollNumber": "142301001",
+            "name": "Jeeva",
+            "cgpa": 8.4,
+            "branch": "Data Science Engineering",
+            "degree": "BTech",
+            "year": 2,
+            "applied_projects": []
         }
     ]
 }
