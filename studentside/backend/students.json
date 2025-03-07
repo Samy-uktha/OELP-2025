@@ -1,3 +1,13 @@
 {
-    "students": []
+    "students": [
+        {
+            "rollNumber": "102201003",
+            "name": "Samyuktha",
+            "cgpa": 9.8,
+            "branch": "Civil Engineering",
+            "degree": "BTech",
+            "year": 3,
+            "applied_projects": []
+        }
+    ]
 }
