@@ -4,6 +4,7 @@ import { InputService } from '../input.service';
 import { CommonModule } from '@angular/common';
 import { ProjectdataService } from '../projectdata.service';
 import { Dept, Student, Project } from '../interfaces';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-dashboard',
@@ -29,37 +30,18 @@ export class DashboardComponent implements OnInit {
 
   allProjects: Project[] = [];
   eligibleProjects: Project[] = [];
-  appliedProjects: string[] = [];
+  applied: string[] = [];
 
   selectedProject: string | null = null; // Stores the currently expanded project
 
-  constructor(private route: ActivatedRoute, private dataService: InputService, private projectService: ProjectdataService ) {}
+  constructor(
+    private route: ActivatedRoute, 
+    private dataService: InputService, 
+    private projectService: ProjectdataService,
+    private cdRef: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
-    // this.name = this.dataService.getData('name');
-    // this.roll = this.dataService.getData('roll');
-    // this.branch = this.dataService.getData('branch') as Dept;
-    // this.year = this.dataService.getData('year');
-    // this.degree = this.dataService.getData('degree');
-    // this.sem = this.dataService.getData('semester');
-    // this.roll = this.dataService.getData('roll');
-    // this.cgpa = this.dataService.getData('cgpa');
-
-
-    // const studentInfo: Student = {
-    //   name: this.name,
-    //   roll: this.roll,
-    //   branch: this.branch,
-    //   degree: this.degree,
-    //   year: Number(2025-parseInt(this.year)),
-    //   cgpa: this.cgpa,
-    //   applied: [],
-    // };
-    // console.log(studentInfo)
-    // this.allProjects = this.projectService.getAllProjects();
-    // this.eligibleProjects = this.projectService.getEligibleProjects(studentInfo);
-    // console.log("eligible",this.eligibleProjects)
-    // this.appliedProjects = this.projectService.getAppliedProjects();
 
     const storedStudent = localStorage.getItem('student');
   if (storedStudent) {
@@ -71,7 +53,7 @@ export class DashboardComponent implements OnInit {
     this.year = studentData.year.toString();
     this.degree = studentData.degree;
     this.cgpa = studentData.cgpa;
-    this.appliedProjects = studentData.applied || [];
+    this.applied = studentData.applied || [];
   } else {
     console.error("No student data found in localStorage");
   }
@@ -86,7 +68,7 @@ export class DashboardComponent implements OnInit {
     degree: this.degree,
     year: Number(this.year),
     cgpa: this.cgpa,
-    applied: this.appliedProjects,
+    applied: this.applied,
   });
   }
   selectTab(tab: string) {
@@ -103,4 +85,91 @@ export class DashboardComponent implements OnInit {
     );
   }
 
+  applyForProject(projectName: string, event: Event) {
+    event.stopPropagation();
+
+    if (!this.applied.includes(projectName)) {
+      this.applied.push(projectName);
+  
+      // Update localStorage immediately for UI consistency
+      const storedStudent = localStorage.getItem('student');
+      if (storedStudent) {
+        const studentData: Student = JSON.parse(storedStudent);
+        studentData.applied = this.applied;
+        localStorage.setItem('student', JSON.stringify(studentData));
+      }
+  
+      // Send update request to Flask backend
+      fetch('http://127.0.0.1:5000/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          roll: this.roll,
+          projectName: projectName
+        })
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to apply for project');
+        }
+        return response.json();
+      })
+      .then(updatedProjects => {
+        console.log('Project applied successfully', updatedProjects);
+    
+        // Update local applied projects list immediately
+        this.applied = updatedProjects;
+    
+        // Trigger UI update
+        this.cdRef.detectChanges();
+      })
+      .catch(error => {
+        console.error('Error applying for project:', error);
+      });
+    }
+  }
+
+
+  removeProject(projectName: string) {
+    console.log("Removing project for roll:", this.roll, "Project:", projectName);
+
+    // Remove from local applied list
+    this.applied = this.applied.filter(p => p !== projectName);
+  
+    // Update localStorage
+    const storedStudent = localStorage.getItem('student');
+    if (storedStudent) {
+      const studentData: Student = JSON.parse(storedStudent);
+      studentData.applied = this.applied;
+      localStorage.setItem('student', JSON.stringify(studentData));
+    }
+  
+    // Send delete request to Flask backend
+    fetch('http://127.0.0.1:5000/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        roll: this.roll,
+        projectName: projectName
+      })
+    })
+    .then(response => {
+      console.log("Response status:", response.status);
+      if (!response.ok) {
+        throw new Error('Failed to remove project');
+      }
+      return response.json();
+    })
+    .then(updatedProjects => {
+      console.log('Project removed successfully', updatedProjects);
+      this.applied = updatedProjects;  // Update UI after successful response
+      this.cdRef.detectChanges();
+    })
+    .catch(error => {
+      console.error('Error removing project:', error);
+    });
+  }
+  
+  
 }
+  

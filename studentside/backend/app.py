@@ -52,7 +52,7 @@ def register_student():
         "degree": new_student.get("degree", "Unknown"),
         "year": new_student.get("year", 0),
         # "semester": new_student.get("sem",0),
-        "applied_projects": []
+        "applied": []
     }
     students_data["students"].append(student_entry)
     save_students(students_data)
@@ -62,24 +62,74 @@ def register_student():
     return jsonify({"message": "Student registered successfully!"}), 201
 
 # # Apply for a project
-# @app.route("/apply", methods=["POST"])
-# def apply_project():
-#     data = request.json
-#     roll_number = data["roll"]
-#     project = data["project"]
+@app.route("/apply", methods=["POST"])
+def apply_project():
+    data = request.json
+    roll_number = data.get("roll")
+    projectName = data.get("projectName")
+    
+    
+    if not roll_number or not projectName:
+        return jsonify({"message": "Missing roll number or project"}), 400
 
-#     students_data = load_students()
+    students_data = load_students()
+    student_found = False
 
-#     for student in students_data["students"]:
-#         if student["roll"] == roll_number:
-#             if project not in student["applied_projects"]:
-#                 student["applied_projects"].append(project)
-#                 save_students(students_data)
-#                 return jsonify({"message": "Project applied successfully!"}), 200
-#             else:
-#                 return jsonify({"message": "Project already applied!"}), 400
+    for student in students_data["students"]:
+        if student["roll"] == roll_number:
+            student_found = True
+            if "applied" not in student:
+                student["applied"] = []
+            if projectName not in student["applied"]:
+                student["applied"].append(projectName)
+                save_students(students_data)
+                print(f"Project '{projectName}' applied for {roll_number}")  # Debugging
+                return jsonify({"message": "Project applied successfully!"}), 200
+            else:
+                print(f"Project '{projectName}' already applied for {roll_number}")  # Debugging
+                return jsonify({"message": "Project already applied!"}), 400
 
-#     return jsonify({"message": "Student not found! Please register first."}), 404
+    if not student_found:
+        print(f"Student {roll_number} not found!")  # Debugging
+        return jsonify({"message": "Student not found! Please register first."}), 404
+
+
+# Remove a project
+@app.route("/remove", methods=["POST"])
+def remove_project():
+    print("heloooooo")
+    data = request.json
+    roll_number = data.get("roll")
+    projectName = data.get("projectName")
+    print("data",data)
+    print(roll_number, projectName)
+    
+    if not roll_number or not projectName:
+        return jsonify({"message": "Missing roll number or project"}), 400
+
+    students_data = load_students()
+    student_found = False
+
+    for student in students_data["students"]:
+        if student["roll"] == roll_number:
+            student_found = True
+            if "applied" not in student:
+                student["applied"] = []
+                
+            if projectName in student["applied"]:
+                student["applied"].remove(projectName)
+                save_students(students_data)
+                print(f"Removed project '{projectName}' for {roll_number}")  # Debugging
+                return jsonify(student["applied"]), 200
+            else:
+                return jsonify({"message": "Project not found in applied list!"}), 400
+
+    if not student_found:
+        print("nope")
+        print(f"Student {roll_number} not found!")  # Debugging
+        return jsonify({"message": "Student not found!"}), 404
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)

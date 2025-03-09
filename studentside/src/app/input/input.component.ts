@@ -69,17 +69,7 @@ export class InputComponent {
     if (!form.valid) return;
 
     const details = this.extractStudentDetails(this.roll);
-  
-    // const branchCode = this.roll.substring(0, 2);
-    // const yearCode = this.roll.substring(2, 4);
-    // const degreeCode = this.roll.substring(4, 6);
-    // const roll = this.roll.substring(6, 9);
-  
-    // const branch: Dept = this.getBranch(branchCode);
-    // const year = '20' + yearCode;
-    // const degree = this.getDegree(degreeCode);
-    // const sem = this.getSem(yearCode);
-  
+
     // Check if student exists
     this.studentService.getStudent(this.roll).subscribe(
       (student) => {
@@ -147,7 +137,7 @@ export class InputComponent {
       degree: student.degree,
       // semester: student.sem,
       cgpa: student.cgpa,
-      appliedProjects: student.applied || []
+      applied: student.applied || []
     }));
   }
 

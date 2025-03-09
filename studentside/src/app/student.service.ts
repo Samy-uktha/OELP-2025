@@ -19,9 +19,14 @@ export class StudentService {
     return this.http.post<{ message: string }>(`${this.apiUrl}/register`,student);
   }
 
-  applyForProject(roll: string, project: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/apply`, { roll, project });
+  applyForProject(roll: string, projectName: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/apply`, { roll, projectName });
   }
+
+  removeProject(roll: string, projectName: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/remove`, { roll, projectName });
+  }
+  
 }
 
 

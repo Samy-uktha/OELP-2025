@@ -3,29 +3,36 @@
         {
             "roll": "102201003",
             "name": "Samyuktha",
-            "cgpa": 9.8,
+            "cgpa": 8.5,
             "branch": "Civil Engineering",
             "degree": "BTech",
             "year": 3,
-            "applied_projects": []
+            "applied": []
         },
         {
             "roll": "122201003",
             "name": "Sneha",
-            "cgpa": 9.6,
+            "cgpa": 9.5,
             "branch": "Electrical Engineering",
             "degree": "BTech",
             "year": 3,
-            "applied_projects": []
+            "applied": []
         },
         {
             "roll": "142301001",
             "name": "Jeeva",
-            "cgpa": 8.4,
+            "cgpa": 8.6,
             "branch": "Data Science Engineering",
             "degree": "BTech",
             "year": 2,
-            "applied_projects": []
+            "applied": [
+                "Sustainable Concrete Using Recycled Materials",
+                "AI-Powered Chatbot",
+                "Energy-Efficient Smart Grid System",
+                "Blockchain-Based Voting System",
+                "IoT-Based Smart Home Automation",
+                "Autonomous Vehicle Design"
+            ]
         }
     ]
 }

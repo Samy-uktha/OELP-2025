@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Project, Dept, Student } from './interfaces';
 
+
 @Injectable({
   providedIn: 'root'
 })
@@ -182,8 +183,42 @@ export class ProjectdataService {
   }
 
   getAppliedProjects(): string[] {
-    return ['Blockchain-Based Voting System','project2','project3']; // This should ideally come from user data
+    const storedStudent = localStorage.getItem('student');
+    if (storedStudent) {
+      const studentData: Student = JSON.parse(storedStudent);
+      return studentData.applied || [];
+    }
+    return [];
   }
+  
 
+  removeProject(projectName: string, roll: string) {
+    const storedStudent = localStorage.getItem('student');
+    if (storedStudent) {
+      const studentData: Student = JSON.parse(storedStudent);
+      studentData.applied = studentData.applied.filter(p => p !== projectName);
+      localStorage.setItem('student', JSON.stringify(studentData));
+    }
+  
+    // Send delete request to Flask backend
+    fetch('http://127.0.0.1:5000/remove_project', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roll, projectName }),
+    })
+      .then(response => response.json())
+      .then(updatedProjects => {
+        const storedStudent = localStorage.getItem('student');
+        if (storedStudent) {
+          const studentData: Student = JSON.parse(storedStudent);
+          studentData.applied = updatedProjects;
+          localStorage.setItem('student', JSON.stringify(studentData));
+        }
+      })
+      .catch(error => {
+        console.error('Error removing project:', error);
+      });
+  }
+  
   constructor() { }
 }
