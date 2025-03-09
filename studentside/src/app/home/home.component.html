@@ -1,14 +1,90 @@
-<div class="container-fluid px-0 mt-4">
-    <div class="row">
-        <div class="col-md-3">
-            <app-sidepanel></app-sidepanel>
-        </div>
   
-        <div class="col-md-9">
-            <app-dashboard></app-dashboard>
+  <div class="container-fluid mt-3">
+    <div class="row">
+      <!-- Side Panel -->
+      <div class="col-lg-3 col-md-4 p-1">
+        <div class="card shadow-lg rounded-lg">
+          <div class="card-header bg-primary text-white text-center fw-bold fs-5">
+            Application Tracker
+          </div>
+          <div class="card-body">
+            <ul class="list-group">
+              <li 
+                *ngFor="let project of applied" 
+                class="list-group-item d-flex justify-content-between align-items-center">
+                <span>{{ project }}</span>
+                <button class="btn btn-danger btn-sm" (click)="removeProject(project)">
+                  Remove
+                </button>
+              </li>
+            </ul>
+          </div>
         </div>
+      </div>
+  
+      <!-- Dashboard -->
+      <div class="col-lg-9 col-md-8 p-1">
+        <div class="card shadow-lg">
+          <div class="card-body">
+            <!-- Tabs Navigation -->
+            <ul class="nav nav-tabs">
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="selectedTab === 'all'" (click)="selectTab('all')">All Projects</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="selectedTab === 'eligible'" (click)="selectTab('eligible')">Eligible Projects</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="selectedTab === 'profile'" (click)="selectTab('profile')">Profile</button>
+              </li>
+            </ul>
+  
+            <div class="mt-4">
+              <div *ngIf="selectedTab === 'all' || selectedTab === 'eligible'">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Project Name</th>
+                      <th>Faculty</th>
+                      <th>Branch</th>
+                      <th>Year</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let project of (selectedTab === 'all' ? allProjects : eligibleProjects)">
+                      <td>{{ project.name }}</td>
+                      <td>{{ project.faculty }}</td>
+                      <td>{{ project.branch.join(', ') }}</td>
+                      <td>{{ project.year.join(', ') }}</td>
+                      <td>
+                        <button class="btn btn-sm"
+                          [ngClass]="applied.includes(project.name) ? 'btn-success' : 'btn-primary'"
+                          [disabled]="applied.includes(project.name)"
+                          (click)="applyForProject(project.name, $event)">
+                          {{ applied.includes(project.name) ? 'Applied' : 'Apply' }}
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+  
+              <div *ngIf="selectedTab === 'profile'">
+                <h4>Student Profile</h4>
+                <p><strong>Name:</strong> {{ name }}</p>
+                <p><strong>Roll Number:</strong> {{ roll }}</p>
+                <p><strong>Branch:</strong> {{ branch }}</p>
+                <p><strong>Year:</strong> {{ year }}</p>
+                <p><strong>Degree:</strong> {{ degree }}</p>
+              </div>
+            </div>
+          </div>
+        </div>  
+      </div>
     </div>
-</div>
-
+  </div>
+  
+  
 
     

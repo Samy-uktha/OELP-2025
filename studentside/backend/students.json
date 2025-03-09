@@ -1,0 +1,48 @@
+{
+    "students": [
+        {
+            "roll": "102201003",
+            "name": "Samyuktha",
+            "cgpa": 8.5,
+            "branch": "Civil Engineering",
+            "degree": "BTech",
+            "year": 3,
+            "applied": [
+                "AI-Powered Chatbot",
+                "Cybersecurity Threat Detection Using Machine Learning",
+                "Sustainable Concrete Using Recycled Materials"
+            ]
+        },
+        {
+            "roll": "122201003",
+            "name": "Sneha",
+            "cgpa": 9.5,
+            "branch": "Electrical Engineering",
+            "degree": "BTech",
+            "year": 3,
+            "applied": [
+                "AI-Powered Chatbot",
+                "IoT-Based Smart Home Automation",
+                "AI-Based Predictive Maintenance for Machines",
+                "Structural Health Monitoring Using IoT"
+            ]
+        },
+        {
+            "roll": "142301001",
+            "name": "Jeeva",
+            "cgpa": 8.6,
+            "branch": "Data Science Engineering",
+            "degree": "BTech",
+            "year": 2,
+            "applied": [
+                "Sustainable Concrete Using Recycled Materials",
+                "AI-Powered Chatbot",
+                "Energy-Efficient Smart Grid System",
+                "Blockchain-Based Voting System",
+                "IoT-Based Smart Home Automation",
+                "Autonomous Vehicle Design",
+                "Cybersecurity Threat Detection Using Machine Learning"
+            ]
+        }
+    ]
+}
