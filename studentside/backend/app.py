@@ -84,10 +84,11 @@ def apply_project():
                 student["applied"].append(projectName)
                 save_students(students_data)
                 print(f"Project '{projectName}' applied for {roll_number}")  # Debugging
-                return jsonify({"message": "Project applied successfully!"}), 200
+                # return jsonify({"message": "Project applied successfully!"}), 200
             else:
                 print(f"Project '{projectName}' already applied for {roll_number}")  # Debugging
-                return jsonify({"message": "Project already applied!"}), 400
+                # return jsonify({"message": "Project already applied!"}), 400
+            return jsonify(student["applied"]), 200
 
     if not student_found:
         print(f"Student {roll_number} not found!")  # Debugging
@@ -120,9 +121,12 @@ def remove_project():
                 student["applied"].remove(projectName)
                 save_students(students_data)
                 print(f"Removed project '{projectName}' for {roll_number}")  # Debugging
-                return jsonify(student["applied"]), 200
+                # return jsonify(student["applied"]), 200
             else:
-                return jsonify({"message": "Project not found in applied list!"}), 400
+                print(f"Project '{projectName}' not found in applied list!")  # Debugging
+
+                # return jsonify({"message": "Project not found in applied list!"}), 400
+            return jsonify(student["applied"]), 200
 
     if not student_found:
         print("nope")

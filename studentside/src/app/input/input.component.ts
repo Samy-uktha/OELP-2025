@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { InputService } from '../input.service';
 import { StudentService } from '../student.service';
 import { Dept, Student } from '../interfaces';
 

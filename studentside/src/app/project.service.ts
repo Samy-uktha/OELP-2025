@@ -5,7 +5,7 @@ import { Project, Dept, Student } from './interfaces';
 @Injectable({
   providedIn: 'root'
 })
-export class ProjectdataService {  
+export class projectService {  
   private projectCriteria: { 
     [key: string]: Project } = {
       "AI-Powered Chatbot": { 

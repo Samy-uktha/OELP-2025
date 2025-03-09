@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterOutlet, Route, Router, RouterModule } from '@angular/router';
 import { InputComponent } from './input/input.component';
-import { DashboardComponent } from './dashboard/dashboard.component';
 import { HomeComponent } from './home/home.component';
 
 @Component({
