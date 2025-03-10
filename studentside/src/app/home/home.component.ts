@@ -64,6 +64,12 @@ export class HomeComponent implements OnInit {
     this.selectedTab = tab;
   }
 
+
+  toggleDescription(projectName: string) {
+    this.selectedProject = this.selectedProject === projectName ? null : projectName;
+}
+
+
   toggleProject(projectName: string) {
     this.selectedProject = this.selectedProject === projectName ? null : projectName;
   }
@@ -72,8 +78,10 @@ export class HomeComponent implements OnInit {
     event.stopPropagation();
 
     if (!Array.isArray(this.applied)) {
-      this.applied = []; // Ensure it's an array
+
+      this.applied = []; 
     }
+
 
     if (!this.applied.includes(projectName)) {
       this.applied.push(projectName);
@@ -109,8 +117,10 @@ export class HomeComponent implements OnInit {
     console.log('Removing project for roll:', this.roll, 'Project:', projectName);
 
     if (!Array.isArray(this.applied)) {
-      this.applied = []; // Ensure it's an array
+
+      this.applied = []; 
     }
+
 
     this.applied = this.applied.filter(p => p !== projectName);
 
