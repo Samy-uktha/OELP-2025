@@ -64,6 +64,7 @@ def register_student():
 # # Apply for a project
 @app.route("/apply", methods=["POST"])
 def apply_project():
+    
     data = request.json
     roll_number = data.get("roll")
     projectName = data.get("projectName")
@@ -78,32 +79,32 @@ def apply_project():
     for student in students_data["students"]:
         if student["roll"] == roll_number:
             student_found = True
+            
             if "applied" not in student:
                 student["applied"] = []
+                
             if projectName not in student["applied"]:
                 student["applied"].append(projectName)
                 save_students(students_data)
-                print(f"Project '{projectName}' applied for {roll_number}")  # Debugging
-                # return jsonify({"message": "Project applied successfully!"}), 200
+                print(f"Project '{projectName}' applied for {roll_number}")  
+                
             else:
-                print(f"Project '{projectName}' already applied for {roll_number}")  # Debugging
-                # return jsonify({"message": "Project already applied!"}), 400
+                print(f"Project '{projectName}' already applied for {roll_number}")  
+                
             return jsonify(student["applied"]), 200
 
     if not student_found:
-        print(f"Student {roll_number} not found!")  # Debugging
+        print(f"Student {roll_number} not found!")  
         return jsonify({"message": "Student not found! Please register first."}), 404
 
 
 # Remove a project
 @app.route("/remove", methods=["POST"])
 def remove_project():
-    print("heloooooo")
+    
     data = request.json
     roll_number = data.get("roll")
     projectName = data.get("projectName")
-    print("data",data)
-    print(roll_number, projectName)
     
     if not roll_number or not projectName:
         return jsonify({"message": "Missing roll number or project"}), 400
@@ -114,23 +115,21 @@ def remove_project():
     for student in students_data["students"]:
         if student["roll"] == roll_number:
             student_found = True
+            
             if "applied" not in student:
                 student["applied"] = []
                 
             if projectName in student["applied"]:
                 student["applied"].remove(projectName)
                 save_students(students_data)
-                print(f"Removed project '{projectName}' for {roll_number}")  # Debugging
-                # return jsonify(student["applied"]), 200
+                print(f"Removed project '{projectName}' for {roll_number}") 
             else:
-                print(f"Project '{projectName}' not found in applied list!")  # Debugging
+                print(f"Project '{projectName}' not found in applied list!")  
 
-                # return jsonify({"message": "Project not found in applied list!"}), 400
             return jsonify(student["applied"]), 200
 
     if not student_found:
-        print("nope")
-        print(f"Student {roll_number} not found!")  # Debugging
+        print(f"Student {roll_number} not found!")  
         return jsonify({"message": "Student not found!"}), 404
 
 

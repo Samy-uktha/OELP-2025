@@ -24,7 +24,6 @@ export enum Dept {
     branch: Dept;
     degree: string;
     year: number;
-    // sem: number;
     cgpa: number;
     applied: string[];
   }
