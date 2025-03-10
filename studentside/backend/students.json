@@ -10,10 +10,13 @@
             "applied": [
                 "AI-Powered Chatbot",
                 "Cybersecurity Threat Detection Using Machine Learning",
+
                 "Sustainable Concrete Using Recycled Materials",
                 "IoT-Based Smart Home Automation",
                 "3D Printing for Structural Engineering",
                 "Structural Health Monitoring Using IoT"
+                "Sustainable Concrete Using Recycled Materials"
+
             ]
         },
         {
@@ -27,8 +30,11 @@
                 "AI-Powered Chatbot",
                 "IoT-Based Smart Home Automation",
                 "AI-Based Predictive Maintenance for Machines",
+
                 "Structural Health Monitoring Using IoT",
                 "Blockchain-Based Voting System"
+                "Structural Health Monitoring Using IoT"
+
             ]
         },
         {
@@ -58,6 +64,12 @@
                 "Blockchain-Based Voting System",
                 "Deep Learning for Medical Image Analysis",
                 "Human Activity Recognition Using AI"
+                "AI-Powered Chatbot",
+                "Energy-Efficient Smart Grid System",
+                "Blockchain-Based Voting System",
+                "IoT-Based Smart Home Automation",
+                "Autonomous Vehicle Design",
+                "Cybersecurity Threat Detection Using Machine Learning"
             ]
         }
     ]

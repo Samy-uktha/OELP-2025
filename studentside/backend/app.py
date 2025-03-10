@@ -79,6 +79,7 @@ def apply_project():
     for student in students_data["students"]:
         if student["roll"] == roll_number:
             student_found = True
+
             
             if "applied" not in student:
                 student["applied"] = []
@@ -95,16 +96,20 @@ def apply_project():
 
     if not student_found:
         print(f"Student {roll_number} not found!")  
+
         return jsonify({"message": "Student not found! Please register first."}), 404
 
 
 # Remove a project
 @app.route("/remove", methods=["POST"])
 def remove_project():
+
     
     data = request.json
     roll_number = data.get("roll")
     projectName = data.get("projectName")
+
+
     
     if not roll_number or not projectName:
         return jsonify({"message": "Missing roll number or project"}), 400
@@ -115,13 +120,17 @@ def remove_project():
     for student in students_data["students"]:
         if student["roll"] == roll_number:
             student_found = True
+
             
+
+
             if "applied" not in student:
                 student["applied"] = []
                 
             if projectName in student["applied"]:
                 student["applied"].remove(projectName)
                 save_students(students_data)
+
                 print(f"Removed project '{projectName}' for {roll_number}") 
             else:
                 print(f"Project '{projectName}' not found in applied list!")  
@@ -130,6 +139,8 @@ def remove_project():
 
     if not student_found:
         print(f"Student {roll_number} not found!")  
+
+
         return jsonify({"message": "Student not found!"}), 404
 
 
