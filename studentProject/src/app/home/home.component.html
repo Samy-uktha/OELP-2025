@@ -1,0 +1,193 @@
+  
+  <div class="container-fluid mt-3">
+    <div class="row">
+      <!-- Side Panel -->
+      <div class="col-lg-3 col-md-4 p-1">
+        <div class="card shadow-lg rounded-lg">
+          <div class="card-header bg-primary text-white text-center fw-bold fs-5">
+            Application Tracker
+          </div>
+          <div class="card-body">
+            <ul class="list-group">
+              <li 
+                *ngFor="let project of applied" 
+                class="list-group-item d-flex justify-content-between align-items-center">
+                <span>{{ project}}</span>
+                <button class="btn btn-danger btn-sm" (click)="removeProject(project)">
+                  Remove
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <!-- Dashboard -->
+      <div *ngIf="!showProj" class="col-lg-9 col-md-8 p-1">
+        <div class="card shadow-lg">
+          <div class="card-body">
+            <!-- Tabs Navigation -->
+            <ul class="nav nav-tabs">
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="selectedTab === 'all'" (click)="selectTab('all')">All Projects</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="selectedTab === 'eligible'" (click)="selectTab('eligible')">Eligible Projects</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="selectedTab === 'profile'" (click)="selectTab('profile')">Profile</button>
+              </li>
+            </ul>
+  
+            <div class="mt-4">
+              <div *ngIf="selectedTab === 'all' || selectedTab === 'eligible'">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Project Name</th>
+                      <th>Faculty</th>
+                      <th>Branch</th>
+                      <th>Year</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let project of (selectedTab === 'all' ? allProjects : eligibleProjects)">
+                      <td>{{ project.title }}</td>
+                      <td>{{ project.faculty_name}}</td>
+                      <!-- <td>{{ project.department?.join(', ') }}</td> -->
+					  <td *ngIf="project.department"> 
+						
+						<div *ngFor="let dept of project.department"> 
+						  {{ dept.dept_name }} 
+						</div>
+					  </td>
+					  
+                      <td>{{ project.min_sem}}</td>
+                      <td>
+                        <button class="btn btn-sm"
+							[ngClass]="applied.includes(project.title) ? 'btn-success' : 'btn-primary'"
+							(click)="apply(project, $event)">
+							{{ applied.includes(project.title) ? 'Applied' : 'Apply' }}
+						</button>
+
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+  
+              <div *ngIf="selectedTab === 'profile'">
+                <h4>Student Profile</h4>
+                <p><strong>Name:</strong> {{ student.name }}</p>
+                <p><strong>Roll Number:</strong> {{ student.rollNumber }}</p>
+                <p><strong>Branch:</strong> {{ student.branch }}</p>
+                <p><strong>Year:</strong> {{ student.semester }}</p>
+                <!-- <p><strong>Degree:</strong> {{ student. }}</p> -->
+				<p><strong>Courses completed:</strong></p>
+				<ul>
+				  <li *ngFor="let course of student.completedCourses">
+					{{ course.course_name }}
+				  </li>
+				</ul>
+				
+              </div>
+            </div>
+          </div>
+        </div>  
+      </div>
+
+
+	  <div *ngIf="showProj" class="col-lg-9 col-md-8 p-1">
+		<div class="card shadow-lg">
+		  <div class="card-body">
+			<h4>{{ selected_Project.title }}</h4>
+			<p><strong>Description:</strong> {{ selected_Project.description }}</p>
+			<p><strong>Faculty:</strong> {{ selected_Project.faculty_name }}</p>
+			<p><strong>Minimum Year to Apply:</strong> {{ selected_Project.min_sem }}</p>
+			<p><strong>Minimum CGPA:</strong> {{ selected_Project.min_cgpa }}</p>
+			
+			<p><strong>Departments Eligible:</strong></p>
+			<div *ngFor="let dept of selected_Project.department"> {{ dept.dept_name }} </div>
+	  
+			<p><strong>Prerequisite Courses:</strong></p>
+			<div *ngFor="let course of selected_Project.prerequisites"> {{ course.course_name }} - {{ course.course_code }} </div>
+			
+			<div *ngIf="!applied.includes(selected_Project.title)">
+			<div class="px-3">
+				<label><strong>Bio:</strong></label>
+				<input type="text" class="form-control mb-2" [(ngModel)]="applicationsData[selected_Project.project_id].bio" [disabled]="applied.includes(selected_Project.title)">
+			</div>
+			
+			
+
+			
+			
+			<h4 class="mt-4">Project Documents</h4>
+
+			<!-- File Upload -->
+			<div class="row">
+			  <div class="col-md-6 mb-3">
+				<input type="file" multiple (change)="onFilesSelected($event, selected_Project.project_id)" class="form-control" [disabled]="applied.includes(selected_Project.title)">
+			  </div>
+			</div>
+			
+			<!-- Manual Document Entry -->
+			<div class="row">
+			  <div class="col-md-5 mb-3">
+				<input type="text" class="form-control" [(ngModel)]="tempDocName" placeholder="Document Name" [ngModelOptions]="{standalone: true}" />
+			  </div>
+			  <div class="col-md-5 mb-3">
+				<input type="text" class="form-control" [(ngModel)]="tempDocUrl" placeholder="Document URL" [ngModelOptions]="{standalone: true}" />
+			  </div>
+			  <div class="col-md-2 mb-3">
+				<button type="button" class="btn btn-primary w-100" (click)="addDocument(tempDocName, tempDocUrl)">Add</button>
+			  </div>
+			</div>
+			
+			<!-- Added Documents -->
+			<div *ngFor="let doc of applicationsData[selected_Project.project_id]?.files; let i = index" class="mb-3 p-3 border rounded d-flex justify-content-between align-items-center bg-white">
+			  <span>
+				<a [href]="doc.url" target="_blank">{{ doc.name }}</a>
+			  </span>
+			  <button type="button" class="btn btn-danger btn-sm" (click)="removeFile(selected_Project.project_id, i)">Remove</button>
+			</div>
+		</div>
+
+		<div *ngIf="applied.includes(selected_Project.title)">
+			<p><strong>Bio:</strong> {{ applicationsData[selected_Project.project_id].bio }}</p>
+
+			<div *ngFor="let doc of applicationsData[selected_Project.project_id]?.files; let i = index" class="mb-3 p-3 border rounded d-flex justify-content-between align-items-center bg-white">
+				<span>
+				  <a [href]="doc.url" target="_blank">{{ doc.name }}</a>
+				</span>
+			</div>
+<p><strong>Status</strong></p>
+			<span class="badge" [ngClass]="getBadgeClass()">{{application.status}}</span>
+		</div>
+
+			<!-- Apply Button -->
+			<button class="btn btn-sm"
+					[ngClass]="applied.includes(selected_Project.title) ? 'btn-success' : 'btn-primary'"
+					[disabled]="applied.includes(selected_Project.title)"
+					(click)="applyForProject(selected_Project, $event)">
+			  {{ applied.includes(selected_Project.title) ? 'Applied' : 'Apply' }}
+			</button>
+	  
+			<!-- Back Button -->
+			<button class="btn btn-sm btn-primary" (click)="back()">Back</button>
+		  </div>
+		</div>
+	  </div>
+	  
+	</div>
+
+
+  
+    </div>
+  
+
+
+  
+  
+
+    

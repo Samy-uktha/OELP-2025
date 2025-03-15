@@ -1,0 +1,576 @@
+const express = require("express");
+const cors = require("cors"); // Import CORS
+const pool = require("./db");
+const multer = require("multer");
+const path = require("path");
+
+
+
+const app = express();
+app.use(express.json());
+app.use(cors({ origin: "*" })); // Allow all origins for development
+ // Enable CORS for all requests
+
+// Get all students
+
+app.use(express.static("uploads")); // Serve static files
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+
+
+// Set up storage for uploaded files
+const storage = multer.diskStorage({
+  destination: "./uploads/",
+  filename: (req, file, cb) => {
+    cb(null, file.fieldname + "-" + Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage: storage });
+
+// Upload endpoint
+app.post("/upload", upload.single("file"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  // Create file URL
+  const fileUrl = `http://localhost:5001/${req.file.filename}`; // Change port if needed
+
+  res.json({ name: req.file.originalname, url: fileUrl });
+});
+
+app.get("/students", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT s.Roll_no AS studentId, 
+                   CONCAT(s.FirstName, ' ', s.LastName) AS name,
+                   s.Roll_no AS rollNumber,
+                   d.dept_name AS branch,
+                   s.Semester AS semester,
+                   s.Cgpa AS cgpa
+            FROM students s
+            JOIN Department d ON s.Department_id = d.dept_id
+        `);
+
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Error fetching students:", err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+// Get completed courses for a student
+app.get("/students/:id/courses", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(`
+            SELECT c.course_id AS "courseId",
+                   c.course_name AS "courseName",
+                   c.Course_code AS "courseCode",
+                   d.dept_name AS "offeredBy",
+                   c.Credits AS "credits"
+            FROM courses c
+            JOIN Department d ON c.department_id = d.dept_id
+            JOIN student_courses sc ON sc.course_id = c.course_id
+            WHERE sc.student_id = $1
+        `, [id]);
+
+        res.json(result.rows);
+    } catch (err) {
+        console.error(`Error fetching courses for student ${id}:`, err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+// Get faculty users
+app.get("/users_faculty", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT user_id, password FROM users WHERE user_type = 'faculty'
+        `);
+
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Error fetching faculty users:", err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+
+app.get("/users_students", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT user_id, password FROM users WHERE user_type = 'student'
+        `);
+
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Error fetching Student users:", err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+// create table students
+// ( 
+// Roll_no integer PRIMARY KEY,
+// FirstName varchar(50) NOT NULL,
+// LastName varchar(50) NOT NULL,
+// email text NOT NULL,
+// Phone_no VARCHAR(10) NOT NULL UNIQUE,
+// Department_id INTEGER,
+// Semester integer NOT NULL,
+// Cgpa integer NOT NULL,
+// CONSTRAINT check_cgpa CHECK(cgpa >= 0 and cgpa <= 10),
+// CONSTRAINT check_semester CHECK(Semester >= 1 and Semester <= 8),
+// CONSTRAINT fk_dept FOREIGN KEY (Department_id) REFERENCES Department(dept_id)
+// );
+app.get("/student/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        console.log(id);
+
+        // Fetch student details
+        const studentQuery = `
+            SELECT s.Roll_no, s.FirstName, s.LastName, s.email, s.Phone_no, d.dept_name AS branch, s.Semester, s.Cgpa
+            FROM users u
+            JOIN students s ON s.Roll_no = u.student_id
+            JOIN Department d ON s.department_id = d.dept_id
+            WHERE u.user_id = $1
+        `;
+        const studentResult = await pool.query(studentQuery, [id]);
+
+        if (studentResult.rows.length === 0) {
+            return res.status(404).json({ error: "Student not found" });
+        }
+
+        const student = studentResult.rows[0]; // Extract single student object
+
+        // Fetch completed courses
+        const courseQuery = `
+            SELECT c.course_id, c.course_name, sc.Grade
+            FROM STUDENT_COURSES sc 
+            JOIN courses c ON sc.Course_id = c.course_id
+            WHERE sc.Student_id = $1
+            AND sc.Grade IN ('S', 'A', 'B', 'C', 'D', 'E')  -- Exclude 'F' and 'I'
+        `;
+        const courseResult = await pool.query(courseQuery, [student.roll_no]);
+        student.completedCourses = courseResult.rows; // Assign completed courses
+
+        // Fetch project applications
+        const applicationQuery = `
+            SELECT pa.project_id, pa.application_id, pa.application_date, pa.status, pa.bio, p.title
+            FROM project_applications pa
+            JOIN projects p ON pa.project_id = p.project_id
+            WHERE pa.student_id = $1
+        `;
+        const applicationResult = await pool.query(applicationQuery, [student.roll_no]);
+
+        // Fetch documents for each application
+        for (let app of applicationResult.rows) {
+            const docQuery = `
+                SELECT Document_name AS name, Document_url AS url 
+                FROM documents_applications 
+                WHERE Individual_Application_id = $1
+            `;
+            const docResult = await pool.query(docQuery, [app.application_id]);
+            app.docs = docResult.rows; // Assign documents to application
+        }
+
+        student.applications = applicationResult.rows; // Assign applications to student
+
+        // Send final JSON response
+        res.json(student);
+    } catch (error) {
+        console.error("Error fetching student:", error.message);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+
+
+// Get faculty details by ID
+app.get("/faculty/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(`
+            SELECT f.faculty_id, f.firstName, f.lastName, f.email, f.Phone_no, 
+                   d.dept_name 
+            FROM users u
+            JOIN faculty f ON f.faculty_id = u.faculty_id
+            JOIN Department d ON f.department_id = d.dept_id
+            WHERE u.user_id = $1
+        `, [id]);
+
+        res.json(result.rows);
+    } catch (err) {
+        console.error(`Error fetching faculty ${id}:`, err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+
+app.get("/faculty_project/:id", async (req, res) => {
+    try {
+        const id = req.params.id; // Ensure `id` is correctly assigned
+        
+        // Fetch project details
+        const projectResult = await pool.query(
+            `SELECT * FROM project_details WHERE faculty_id = $1`, 
+            [id]
+        );
+        
+        const projects = projectResult.rows;
+
+        // Fetch prerequisites and documents for each project
+        for (let project of projects) {
+            // 🔹 Fetch prerequisites (courses)
+            const prereqResult = await pool.query(
+                `SELECT c.course_id, c.course_name, c.credits 
+                 FROM prereq pp 
+                 JOIN courses c ON pp.course_id = c.course_id
+                 WHERE pp.project_id = $1`, 
+                [project.project_id]
+            );
+            project.prerequisites = prereqResult.rows; // Attach prerequisites
+
+            // 🔹 Fetch documents (Fixed: Now inside the loop)
+            const docResult = await pool.query(
+                `SELECT document_name as doc_name, document_path as doc_url
+                 FROM project_documents 
+                 WHERE project_id = $1`, 
+                [project.project_id]
+            );
+            project.documents = docResult.rows; // Attach documents
+
+
+            const deptResult = await pool.query(
+                `SELECT pd.dept_id, d.dept_name  -- ✅ Use "pd.dept_id" to avoid ambiguity
+                    FROM project_dept pd
+                    JOIN Department d ON pd.dept_id = d.dept_id
+                    WHERE pd.project_id = $1
+                `, 
+                [project.project_id]
+            );
+            // console.log()
+            project.department = deptResult.rows || []; // Attach documents
+        }
+
+        res.json(projects);
+    } catch (err) {
+        console.error(`Error fetching projects for faculty ${req.params.id}:`, err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+
+app.put("/update_project", async (req, res) => {
+    try {
+        
+        const { project_id, title, min_cgpa, description, available_slots, students_per_team, prerequisites, documents, min_sem, department } = req.body;
+        console.log("-------",req.body);
+        // Update project details
+        const updateQuery = `
+            UPDATE projects
+            SET title = $1, min_cgpa = $2, description = $3, available_slots = $4, students_per_team = $5, min_sem = $6
+            WHERE project_id = $7
+            RETURNING *;
+        `;
+
+        const result = await pool.query(updateQuery, [title, min_cgpa, description, available_slots, students_per_team, min_sem, project_id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: "Project not found" });
+        }
+
+        // Update prerequisites
+        await pool.query(`DELETE FROM prereq WHERE project_id = $1`, [project_id]);
+        if (prerequisites && prerequisites.length > 0) {
+            const prereqInsertQuery = `INSERT INTO prereq (project_id, course_id) VALUES ${prerequisites.map((_, i) => `($1, $${i + 2})`).join(", ")}`;
+            await pool.query(prereqInsertQuery, [project_id, ...prerequisites.map(p => p.course_id)]);
+        }
+
+        // Update documents
+        await pool.query(`DELETE FROM project_documents WHERE project_id = $1`, [project_id]);
+        if (documents && documents.length > 0) {
+            const docInsertQuery = `INSERT INTO project_documents (project_id, doc_name, doc_url) VALUES ${documents.map((_, i) => `($1, $${i * 2 + 2}, $${i * 2 + 3})`).join(", ")}`;
+            const docValues = documents.flatMap(doc => [doc.doc_name, doc.doc_url]);
+            await pool.query(docInsertQuery, [project_id, ...docValues]);
+        }
+
+        // Update department
+        await pool.query(`DELETE FROM project_dept WHERE project_id = $1`, [project_id]);
+        if (department && department.length > 0) {
+            const values = department.map((_, i) => `($1, $${i + 2})`).join(", ");
+            const params = [project_id, ...department.map(d => d.dept_id)];
+
+            const insertQuery = `INSERT INTO project_dept (project_id, dept_id) VALUES ${values}`;
+            await pool.query(insertQuery, params);
+        }
+
+        res.json({ message: "Project updated successfully", project: result.rows[0] });
+    } catch (err) {
+        console.error(`Error updating project :`, err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+
+app.post("/add_project", async (req, res) => {
+    try {
+        const { title, min_cgpa, description, available_slots, students_per_team, prerequisites, documents, min_sem, faculty_id, department } = req.body;
+        console.log("-----", req.body);
+
+        // Insert project details and get the new project ID
+        const projectInsertQuery = `
+            INSERT INTO projects (title, min_cgpa, description, available_slots, students_per_team, faculty_id, min_sem)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING project_id;
+        `;
+
+        console.log("query", projectInsertQuery);
+        const projectResult = await pool.query(projectInsertQuery, [
+            title, min_cgpa, description, available_slots, students_per_team, faculty_id, min_sem
+        ]);
+        const project_id = projectResult.rows[0].project_id;
+
+        // Insert prerequisites if available
+        if (prerequisites && prerequisites.length > 0) {
+            const prereqInsertQueries = prerequisites.map(prereq =>
+                pool.query(`INSERT INTO prereq (project_id, course_id) VALUES ($1, $2)`, [project_id, prereq.course_id])
+            );
+            await Promise.all(prereqInsertQueries);
+        }
+
+        // Insert departments if available (Fixed issue here)
+        if (department && department.length > 0) {
+            const deptInsertQueries = department.map(dept =>
+                pool.query(`INSERT INTO project_dept (project_id, dept_id) VALUES ($1, $2)`, [project_id, dept.dept_id])
+            );
+            await Promise.all(deptInsertQueries); 
+        }
+
+        // Insert documents if available
+        if (documents && documents.length > 0) {
+            const docInsertQueries = documents.map(doc =>
+                pool.query(`INSERT INTO project_documents (project_id, Document_name, Document_path) VALUES ($1, $2, $3)`, [project_id, doc.doc_name, doc.doc_url])
+            );
+            await Promise.all(docInsertQueries);
+        }
+
+        res.status(201).json({ message: "Project added successfully", project_id });
+
+    } catch (err) {
+        console.error("Error adding project:", err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+app.get("/projects", async (req, res) => {
+    try {
+        
+        // Fetch project details
+        const projectResult = await pool.query(
+            `SELECT * FROM project_details`, 
+        );
+        
+        const projects = projectResult.rows;
+
+
+        // Fetch prerequisites and documents for each project
+        for (let project of projects) {
+            // 🔹 Fetch prerequisites (courses)
+            const faculty = await pool.query(`select f.firstName || ' ' || f.lastName  as faculty_name from faculty f where f.faculty_id = $1`, [project.faculty_id]);
+            project.faculty = faculty.rows[0].faculty_name;
+            const prereqResult = await pool.query(
+                `SELECT c.course_id, c.course_name, c.credits 
+                 FROM prereq pp 
+                 JOIN courses c ON pp.course_id = c.course_id
+                 WHERE pp.project_id = $1`, 
+                [project.project_id]
+            );
+            project.prerequisites = prereqResult.rows; // Attach prerequisites
+
+            // 🔹 Fetch documents (Fixed: Now inside the loop)
+            const docResult = await pool.query(
+                `SELECT document_name as doc_name, document_path as doc_url
+                 FROM project_documents 
+                 WHERE project_id = $1`, 
+                [project.project_id]
+            );
+            project.documents = docResult.rows; // Attach documents
+
+
+            const deptResult = await pool.query(
+                `SELECT pd.dept_id, d.dept_name  -- ✅ Use "pd.dept_id" to avoid ambiguity
+                    FROM project_dept pd
+                    JOIN Department d ON pd.dept_id = d.dept_id
+                    WHERE pd.project_id = $1
+                `, 
+                [project.project_id]
+            );
+            // console.log()
+            project.department = deptResult.rows || []; // Attach documents
+        }
+
+        res.json(projects);
+    } catch (err) {
+        console.error(`Error fetching projects for faculty ${req.params.id}:`, err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+
+// Get all courses
+app.get("/courses", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT c.course_id ,
+                   c.course_name ,
+                   c.Course_code,
+                   c.Credits AS "credits"
+            FROM courses c
+        `);
+
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Error fetching courses:", err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+
+app.get("/department", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT d.dept_id ,
+                   d.dept_name 
+            FROM Department d
+        `);
+
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Error fetching courses:", err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+
+
+
+
+app.get("/applications_project/:id", async (req, res) => {
+    try {
+        const id = req.params.id; // Ensure `id` is correctly assigned
+        
+        // Fetch project details
+        const indappResult = await pool.query(
+            `SELECT * FROM project_applications WHERE project_id = $1`, 
+            [id]
+        );
+        
+        const indapps = indappResult.rows;
+
+        for (let application of indapps) {
+            // 🔹 Fetch prerequisites (courses)
+            const studRes = await pool.query(
+                `SELECT app.student_id, s.Firstname, s.LastName, s.Cgpa, s.Semester 
+                 FROM students s
+                 JOIN project_applications app ON app.student_id = s.Roll_no
+                 WHERE app.project_id = $1`, 
+                [application.project_id]
+            );
+            indapps.students = studRes.rows;
+
+            // 🔹 Fetch documents (Fixed: Now inside the loop)
+            // const docResult = await pool.query(
+            //     `SELECT document_name as doc_name, document_path as doc_url
+            //      FROM project_documents 
+            //      WHERE project_id = $1`, 
+            //     [project.project_id]
+            // );
+            // project.documents = docResult.rows; // Attach documents
+
+
+            // const deptResult = await pool.query(
+            //     `SELECT pd.dept_id, d.dept_name  -- ✅ Use "pd.dept_id" to avoid ambiguity
+            //         FROM project_dept pd
+            //         JOIN Department d ON pd.dept_id = d.dept_id
+            //         WHERE pd.project_id = $1
+            //     `, 
+            //     [project.project_id]
+            // );
+            // console.log()
+            // project.department = deptResult.rows || []; // Attach documents
+        }
+
+        res.json(indapps);
+    } catch (err) {
+        console.error(`Error fetching projects for faculty ${req.params.id}:`, err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+
+app.post("/add_application", async (req, res) => {
+    try {
+        const { student_id, project_id, bio, docs } = req.body;
+        
+        console.log("Received application data:", req.body);
+        // console.log("Received application data: --- project",projapp);
+
+        // Insert application and get the new application ID
+        const appInsertQuery = `
+            INSERT INTO project_applications (Student_id, Project_id, bio)
+            VALUES ($1, $2, $3)
+            RETURNING Application_id;
+        `;
+
+        const appResult = await pool.query(appInsertQuery, [student_id, project_id, bio]);
+        const application_id = appResult.rows[0].application_id;
+
+        // Insert documents if available
+        if (docs && docs.length > 0) {
+            const docInsertQueries = docs.map(doc =>
+                pool.query(
+                    `INSERT INTO documents_applications (Individual_Application_id, Document_name, Document_url) 
+                     VALUES ($1, $2, $3)`, 
+                    [application_id, doc.name, doc.url]
+                )
+            );
+            await Promise.all(docInsertQueries); 
+        }
+
+        res.status(201).json({ message: "Application added successfully", application_id });
+
+    } catch (err) {
+        console.error("Error adding application:", err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+
+app.delete("/delete_application", async (req, res) => {
+    try {
+        const { student_id, project_id } = req.body;
+
+        // First, delete related documents if any
+        // await pool.query("DELETE FROM documents_applications WHERE Individual_Application_id = $1", [id]);
+
+        // Then delete the application
+        const result = await pool.query("DELETE FROM project_applications WHERE student_id = $1 and project_id = $2 RETURNING *", [student_id, project_id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: "Application not found" });
+        }
+
+        res.json({ message: "Application deleted successfully" });
+    } catch (err) {
+        console.error("Error deleting application:", err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+
+// Start server
+app.listen(5001, () => console.log("Server running on port 5001"));

@@ -43,10 +43,19 @@ export class HomeComponent {
     
   }
 
+
+ 
+
   getData(){
-    const facultyData = JSON.parse(localStorage.getItem('faculty') || '{}');
-    this.faculty = facultyData;
-    console.log(facultyData);
+
+    if (typeof window !== 'undefined') {  // ✅ Ensures it's in the browser
+      const data = localStorage.getItem('key');
+      console.log(data);
+    } else {
+      console.warn('localStorage is not available in this environment');
+    }
+    this.faculty = history.state.faculty;
+    console.log(this.faculty);
 
     this.service.getStudents().subscribe(
       {

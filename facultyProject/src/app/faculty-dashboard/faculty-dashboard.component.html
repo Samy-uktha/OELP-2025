@@ -1,0 +1,49 @@
+<div class="container-fluid mt-4">
+	<div class="row">
+
+	  <div class="col-md-3 mb-3">
+		<div class="card shadow-lg border-0 rounded-4">
+		  <div class="card-body">
+			<h5 class="card-title text-center text-primary">Dashboard</h5>
+  
+			<ul class="nav nav-tabs flex-column">
+			  <li class="nav-item" *ngFor="let tab of tabs; let i = index">
+				<a 
+				  class="nav-link"
+				  [class.active]="selectedTab === tab.key"
+				  role="button"
+				  (click)="selectedTab = tab.key">
+				  {{ tab.label }}
+				</a>
+			  </li>
+			</ul>
+		  </div>
+		</div>
+	  </div>
+
+	  <div class="col-md-9">
+		<div class="card shadow-lg border-0 rounded-4">
+		  <div class="card-body">
+  
+			<div *ngIf="selectedTab === 'projects'">
+			  <h2 class="mb-4 text-center text-secondary">Projects</h2>
+			  <app-project [faculty]="faculty"></app-project>
+			</div>
+  
+			<div *ngIf="selectedTab === 'applications'">
+			  <h2 class="mb-4 text-center text-secondary">Applications</h2>
+			  <app-application></app-application>
+			</div>
+  
+			<div *ngIf="selectedTab === 'profile'">
+			  <h2 class="mb-4 text-center text-secondary">Profile</h2>
+			  <app-profile [faculty]="faculty"></app-profile>
+			</div>
+  
+		  </div>
+		</div>
+	  </div>
+	  
+	</div>
+  </div>
+  

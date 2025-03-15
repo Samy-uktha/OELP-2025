@@ -1,20 +1,21 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { Student,Project, projApplication, Status, Faculty, Dept, Course  } from './interfaces';
+import { HttpClient} from '@angular/common/http';
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectDataService {
   
-  constructor() { }
-
+  constructor(private http : HttpClient) { }
+  private apiUrl = 'http://localhost:5001';
   private courses: Course[] = [
     {
       courseId : 1,
       courseName : "Data Structures and algorithms",
       courseCode : "CS2025",
       credits : 3,
-      offeredBy : Dept.CS
+
 
     },
     {
@@ -22,7 +23,7 @@ export class ProjectDataService {
       courseName : "Introduction to AI",
       courseCode : "DS2025",
       credits : 4,
-      offeredBy : Dept.DS
+
 
     },
     {
@@ -30,7 +31,7 @@ export class ProjectDataService {
       courseName : "Machine Learning",
       courseCode : "DS4235",
       credits : 5,
-      offeredBy : Dept.DS
+
 
     },
     {
@@ -38,7 +39,7 @@ export class ProjectDataService {
       courseName : "Probability and Statistics",
       courseCode : "MT1025",
       credits : 3,
-      offeredBy : Dept.CS
+
 
     },
 
@@ -136,7 +137,7 @@ export class ProjectDataService {
 
   // Service methods to return mock data as observables
   getStudents(): Observable<Student[]> {
-    return of(this.students);
+    return this.http.get<Student[]>(`${this.apiUrl}/students`);
   }
 
   getFaculty(): Observable<Faculty[]> {
@@ -151,7 +152,11 @@ export class ProjectDataService {
     return of(this.applications);
   }
 
+  getStudentCourses(studentId: string): Observable<Course[]> {
+    return this.http.get<Course[]>(`${this.apiUrl}/students/${studentId}/courses`);
+  }
+
   getCourses() : Observable<Course[]>{
-    return of(this.courses);
+    return this.http.get<Course[]>(`${this.apiUrl}/courses`);
   }
 }

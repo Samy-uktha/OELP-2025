@@ -23,7 +23,6 @@ export interface Course {
     courseId: number;
     courseName: string;
     courseCode: string;
-    offeredBy: Dept;
     credits: number;
 }
 
@@ -35,7 +34,7 @@ export interface Student {
     branch: Dept;
     semester: number;
     cgpa: number;
-    completedCourses: Course[];
+    completedCourses?: Course[];
 }
 
 // Faculty Interface
