@@ -17,7 +17,7 @@ export interface Student {
 	phone_no : number;
 	email : string;
     branch: string;
-    semester: number;
+    year: number;
     cgpa: number;
     completedCourses?: course[];
 	applied? : projApplication[];
@@ -58,7 +58,7 @@ export interface project{
 	students_per_team : number,
 	prerequisites? : course[],
 	documents? : Pdf[],
-	min_sem : number,
+	min_year : number,
 	department? : department[]
 
 }

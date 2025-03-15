@@ -66,7 +66,7 @@ applied : any[] = [];
         console.log("Fetched projects data:", this.allProjects);
   
         // Check if student data is already fetched before filtering eligible ones
-        if (this.student.semester) {
+        if (this.student.year) {
           this.updateeligibleProjects();
         }
       },
@@ -121,7 +121,7 @@ applied : any[] = [];
     }
   
     this.eligibleProjects = this.allProjects.filter(project => 
-      project.min_sem <= this.student.semester && 
+      project.min_year <= this.student.year && 
       project.department?.some(dept => dept.dept_name === this.student.branch)
     );
   

@@ -47,7 +47,7 @@ app.get("/students", async (req, res) => {
                    CONCAT(s.FirstName, ' ', s.LastName) AS name,
                    s.Roll_no AS rollNumber,
                    d.dept_name AS branch,
-                   s.Semester AS semester,
+                   s.year AS year,
                    s.Cgpa AS cgpa
             FROM students s
             JOIN Department d ON s.Department_id = d.dept_id
@@ -132,7 +132,7 @@ app.get("/student/:id", async (req, res) => {
 
         // Fetch student details
         const studentQuery = `
-            SELECT s.Roll_no, s.FirstName, s.LastName, s.email, s.Phone_no, d.dept_name AS branch, s.Semester, s.Cgpa
+            SELECT s.Roll_no, s.FirstName, s.LastName, s.email, s.Phone_no, d.dept_name AS branch, s.year, s.Cgpa
             FROM users u
             JOIN students s ON s.Roll_no = u.student_id
             JOIN Department d ON s.department_id = d.dept_id
@@ -267,17 +267,17 @@ app.get("/faculty_project/:id", async (req, res) => {
 app.put("/update_project", async (req, res) => {
     try {
         
-        const { project_id, title, min_cgpa, description, available_slots, students_per_team, prerequisites, documents, min_sem, department } = req.body;
+        const { project_id, title, min_cgpa, description, available_slots, students_per_team, prerequisites, documents, min_year, department } = req.body;
         console.log("-------",req.body);
         // Update project details
         const updateQuery = `
             UPDATE projects
-            SET title = $1, min_cgpa = $2, description = $3, available_slots = $4, students_per_team = $5, min_sem = $6
+            SET title = $1, min_cgpa = $2, description = $3, available_slots = $4, students_per_team = $5, min_year = $6
             WHERE project_id = $7
             RETURNING *;
         `;
 
-        const result = await pool.query(updateQuery, [title, min_cgpa, description, available_slots, students_per_team, min_sem, project_id]);
+        const result = await pool.query(updateQuery, [title, min_cgpa, description, available_slots, students_per_team, min_year, project_id]);
 
         if (result.rowCount === 0) {
             return res.status(404).json({ message: "Project not found" });
@@ -318,19 +318,19 @@ app.put("/update_project", async (req, res) => {
 
 app.post("/add_project", async (req, res) => {
     try {
-        const { title, min_cgpa, description, available_slots, students_per_team, prerequisites, documents, min_sem, faculty_id, department } = req.body;
+        const { title, min_cgpa, description, available_slots, students_per_team, prerequisites, documents, min_year, faculty_id, department } = req.body;
         console.log("-----", req.body);
 
         // Insert project details and get the new project ID
         const projectInsertQuery = `
-            INSERT INTO projects (title, min_cgpa, description, available_slots, students_per_team, faculty_id, min_sem)
+            INSERT INTO projects (title, min_cgpa, description, available_slots, students_per_team, faculty_id, min_year)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING project_id;
         `;
 
         console.log("query", projectInsertQuery);
         const projectResult = await pool.query(projectInsertQuery, [
-            title, min_cgpa, description, available_slots, students_per_team, faculty_id, min_sem
+            title, min_cgpa, description, available_slots, students_per_team, faculty_id, min_year
         ]);
         const project_id = projectResult.rows[0].project_id;
 
@@ -474,7 +474,7 @@ app.get("/applications_project/:id", async (req, res) => {
         for (let application of indapps) {
             // 🔹 Fetch prerequisites (courses)
             const studRes = await pool.query(
-                `SELECT app.student_id, s.Firstname, s.LastName, s.Cgpa, s.Semester 
+                `SELECT app.student_id, s.Firstname, s.LastName, s.Cgpa, s.year 
                  FROM students s
                  JOIN project_applications app ON app.student_id = s.Roll_no
                  WHERE app.project_id = $1`, 

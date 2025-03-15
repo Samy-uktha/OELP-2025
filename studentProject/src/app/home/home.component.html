@@ -62,7 +62,7 @@
 						</div>
 					  </td>
 					  
-                      <td>{{ project.min_sem}}</td>
+                      <td>{{ project.min_year}}</td>
                       <td>
                         <button class="btn btn-sm"
 							[ngClass]="applied.includes(project.title) ? 'btn-success' : 'btn-primary'"
@@ -77,11 +77,15 @@
               </div>
   
               <div *ngIf="selectedTab === 'profile'">
+				<div class="card m-5">
+					<div class="card-header text-center bg-primary text-white">
                 <h4>Student Profile</h4>
+					</div>
+					<div class="card-body">
                 <p><strong>Name:</strong> {{ student.name }}</p>
                 <p><strong>Roll Number:</strong> {{ student.rollNumber }}</p>
                 <p><strong>Branch:</strong> {{ student.branch }}</p>
-                <p><strong>Year:</strong> {{ student.semester }}</p>
+                <p><strong>Year:</strong> {{ student.year }}</p>
                 <!-- <p><strong>Degree:</strong> {{ student. }}</p> -->
 				<p><strong>Courses completed:</strong></p>
 				<ul>
@@ -89,7 +93,8 @@
 					{{ course.course_name }}
 				  </li>
 				</ul>
-				
+					</div>
+				</div>
               </div>
             </div>
           </div>
@@ -109,7 +114,7 @@
 			<!-- Project Details -->
 			<p><strong>Description:</strong> {{ selected_Project.description }}</p>
 			<p><strong>Faculty:</strong> {{ selected_Project.faculty_name }}</p>
-			<p><strong>Minimum Year to Apply:</strong> {{ selected_Project.min_sem }}</p>
+			<p><strong>Minimum Year to Apply:</strong> {{ selected_Project.min_year }}</p>
 			<p><strong>Minimum CGPA:</strong> {{ selected_Project.min_cgpa }}</p>
 	  
 			<!-- Departments -->

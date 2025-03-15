@@ -12,10 +12,10 @@ LastName varchar(50) NOT NULL,
 email text NOT NULL,
 Phone_no VARCHAR(10) NOT NULL UNIQUE,
 Department_id INTEGER,
-Semester integer NOT NULL,
+year integer NOT NULL,
 Cgpa integer NOT NULL,
 CONSTRAINT check_cgpa CHECK(cgpa >= 0 and cgpa <= 10),
-CONSTRAINT check_semester CHECK(Semester >= 1 and Semester <= 8),
+CONSTRAINT check_year CHECK(year >= 1 and year <= 8),
 CONSTRAINT fk_dept FOREIGN KEY (Department_id) REFERENCES Department(dept_id)
 );
 
@@ -76,7 +76,7 @@ ALTER TABLE projects
 ADD COLUMN Available_slots INTEGER NOT NULL CHECK (Available_slots >= 0),  -- Total available slots for students
 ADD COLUMN Students_per_team INTEGER NOT NULL CHECK (Students_per_team >= 1); -- Minimum 1 student per team
 ALTER TABLE projects
-ADD COLUMN min_sem INTEGER CHECK(min_sem >= 1 and min_sem <= 20);
+ADD COLUMN min_year INTEGER CHECK(min_year >= 1 and min_year <= 20);
 
 ALTER TABLE projects 
 ADD COLUMN faculty_id INTEGER,
@@ -120,7 +120,7 @@ SELECT
     p.available_slots,
     p.students_per_team,
     p.faculty_id,
-	p.min_sem,
+	p.min_year,
     ARRAY_AGG(DISTINCT pr.course_id) AS prerequisite_courses,
     ARRAY_AGG(DISTINCT pd.document_name) AS document_names,
     ARRAY_AGG(DISTINCT pd.document_path) AS document_paths

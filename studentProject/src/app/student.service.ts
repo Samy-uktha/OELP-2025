@@ -21,7 +21,7 @@ export class StudentService {
             email: data.email,
             phone_no: data.phone_no,
             branch: data.branch,
-            semester: data.semester,
+            year: data.year,
             cgpa: data.cgpa,
             completedCourses: data.completedCourses || [], // Ensure it's an array
             applied: data.applications || []
