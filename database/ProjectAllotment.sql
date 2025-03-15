@@ -63,7 +63,7 @@ CREATE TABLE STUDENT_COURSES (
 );
 
 create table projects(
-	project_id integer PRIMARY KEY,
+	project_id SERIAL integer PRIMARY KEY,
     faculty_id integer, 
 	Title text NOT NULL UNIQUE,
 	Description text NOT NULL,
