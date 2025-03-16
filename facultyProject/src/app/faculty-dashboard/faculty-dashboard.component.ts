@@ -1,11 +1,13 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { FacultydataService } from '../facultydata.service';
-import { faculty } from '../models';
+import { faculty, project } from '../models';
 import { ApplicationComponent } from "../application/application.component";
 import { ProjectComponent } from "../project/project.component";
 import { ProfileComponent } from "../profile/profile.component";
 import { CommonModule } from '@angular/common';
+import { ProjectsService } from '../projects.service';
+import { application } from 'express';
 
 @Component({
   selector: 'app-faculty-dashboard',
@@ -19,6 +21,10 @@ export class FacultyDashboardComponent {
   faculty : faculty = {} as faculty;
   showprofile : boolean = true;
   selectedTab = 'profile'; // Default selected tab
+  showDropdown: boolean = false;
+  selectedApplication: project | undefined;
+  projects : project[] = [] as project[];
+
   tabs = [
     { key: 'profile', label: 'Profile' },
     { key: 'projects', label: 'Projects' },
@@ -26,7 +32,7 @@ export class FacultyDashboardComponent {
   ];
   
 
-  constructor(private router: Router, private facservice : FacultydataService) {
+  constructor(private router: Router, private facservice : FacultydataService, private projservice : ProjectsService) {
     const navigation = this.router.getCurrentNavigation();
     this.userId = navigation?.extras.state?.['userId'] || null;
     console.log('Received User ID:', this.userId);
@@ -49,7 +55,36 @@ export class FacultyDashboardComponent {
         alert('Failed to load faculty data. Please try again.');
       }
     });
+    
+  
   }
+
+  toggleApplications(){
+    this.projservice.getProjects(this.faculty.faculty_id).subscribe({
+      next: (projects) => {
+        this.projects = projects;
+        console.log(projects);
+      },
+      error : (error) => {
+        console.error('Error fetching projects data:', error);
+        alert('Failed to load projects data. Please try again.');
+      }
+      }); 
+    this.selectedTab = 'applications';
+    this.showDropdown = true;
+  }
+
+  selectApplication(project: project) {
+    this.selectedApplication = project;
+    console.log("hiiiiiiiiii",project);
+  }
+
+  selectTab(tab: string) {
+    this.selectedTab = tab;
+    this.selectedApplication = undefined;
+    this.showDropdown = false;
+  }
+
   
   
       

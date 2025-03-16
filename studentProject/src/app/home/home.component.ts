@@ -228,7 +228,7 @@ applied : any[] = [];
   }
   getBadgeClass(){
     switch (this.application.status.toLowerCase()) {
-      case 'approved': return 'badge bg-success';
+      case 'accepted': return 'badge bg-success';
       case 'pending': return 'badge bg-warning text-dark';
       case 'rejected': return 'badge bg-danger';
       default: return 'badge bg-secondary';

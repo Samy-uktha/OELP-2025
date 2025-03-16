@@ -459,57 +459,6 @@ app.get("/department", async (req, res) => {
 
 
 
-app.get("/applications_project/:id", async (req, res) => {
-    try {
-        const id = req.params.id; // Ensure `id` is correctly assigned
-        
-        // Fetch project details
-        const indappResult = await pool.query(
-            `SELECT * FROM project_applications WHERE project_id = $1`, 
-            [id]
-        );
-        
-        const indapps = indappResult.rows;
-
-        for (let application of indapps) {
-            // 🔹 Fetch prerequisites (courses)
-            const studRes = await pool.query(
-                `SELECT app.student_id, s.Firstname, s.LastName, s.Cgpa, s.year 
-                 FROM students s
-                 JOIN project_applications app ON app.student_id = s.Roll_no
-                 WHERE app.project_id = $1`, 
-                [application.project_id]
-            );
-            indapps.students = studRes.rows;
-
-            // 🔹 Fetch documents (Fixed: Now inside the loop)
-            // const docResult = await pool.query(
-            //     `SELECT document_name as doc_name, document_path as doc_url
-            //      FROM project_documents 
-            //      WHERE project_id = $1`, 
-            //     [project.project_id]
-            // );
-            // project.documents = docResult.rows; // Attach documents
-
-
-            // const deptResult = await pool.query(
-            //     `SELECT pd.dept_id, d.dept_name  -- ✅ Use "pd.dept_id" to avoid ambiguity
-            //         FROM project_dept pd
-            //         JOIN Department d ON pd.dept_id = d.dept_id
-            //         WHERE pd.project_id = $1
-            //     `, 
-            //     [project.project_id]
-            // );
-            // console.log()
-            // project.department = deptResult.rows || []; // Attach documents
-        }
-
-        res.json(indapps);
-    } catch (err) {
-        console.error(`Error fetching projects for faculty ${req.params.id}:`, err.message);
-        res.status(500).send("Server Error");
-    }
-});
 
 
 app.post("/add_application", async (req, res) => {
@@ -570,6 +519,54 @@ app.delete("/delete_application", async (req, res) => {
         res.status(500).send("Server Error");
     }
 });
+
+app.get('/get_applications/:projectId', async (req, res) => {
+    try {
+        const projectId = req.params.projectId;
+        const result = await pool.query(
+            `SELECT a.Application_id, s.firstName || ' ' || s.lastName as name , s.cgpa, s.Roll_no, s.year, a.Status, 
+            a.bio, d.dept_name, a.Application_date
+             FROM project_applications a
+             JOIN students s ON a.student_id = s.Roll_no
+             JOIN Department d ON s.Department_id = d.dept_id
+             WHERE a.Project_id = $1
+             ORDER BY a.Application_date DESC;`,
+            [projectId]
+        );
+
+        applications = result.rows;
+
+        for (let app of applications){
+            const app_id = app.application_id;
+
+            const docResult = await pool.query(
+                `SELECT document_name as doc_name, document_url as doc_url from documents_applications
+                 where individual_application_id = $1`,[app_id]
+            );
+
+            app.documents = docResult.rows;
+        }
+        res.json(applications);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.patch('/applications/:id', async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    console.log("Updating status:", status, "for application:", id);
+    try {
+        await pool.query('UPDATE project_applications SET status = $1 WHERE application_id = $2', [status, id]);
+        res.json({ success: true, message: 'Application status updated successfully' });
+    } catch (error) {
+        console.error('Error updating application status:', error);
+        res.status(500).json({ error: 'Failed to update application status' });
+    }
+});
+
+
 
 
 // Start server

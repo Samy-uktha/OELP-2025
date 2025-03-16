@@ -101,74 +101,89 @@
         </div>  
       </div>
 
-
 	  <div *ngIf="showProj" class="col-lg-9 col-md-8 p-2">
-		<div class="card shadow-lg border-0">
+		<div class="card shadow-lg border-0 rounded-4">
 		  
 		  <!-- Card Header -->
-		  <div class="card-header bg-primary text-white">
-			<h4 class="mb-0">{{ selected_Project.title }}</h4>
+		  <div class="card-header bg-primary text-white text-center py-3">
+			<h3 class="mb-0 fw-bold">{{ selected_Project.title }}</h3>
 		  </div>
 	  
-		  <div class="card-body">
+		  <div class="card-body p-4 bg-light">
 			<!-- Project Details -->
-			<p><strong>Description:</strong> {{ selected_Project.description }}</p>
-			<p><strong>Faculty:</strong> {{ selected_Project.faculty_name }}</p>
-			<p><strong>Minimum Year to Apply:</strong> {{ selected_Project.min_year }}</p>
-			<p><strong>Minimum CGPA:</strong> {{ selected_Project.min_cgpa }}</p>
-	  
-			<!-- Departments -->
-			<p><strong>Departments Eligible:</strong></p>
-			<div class="d-flex flex-wrap gap-2">
-			  <span *ngFor="let dept of selected_Project.department" class="badge bg-secondary">
-				{{ dept.dept_name }}
-			  </span>
+			<div class="mb-3">
+			  <h5 class="fw-bold">Description</h5>
+			  <p class="text-muted">{{ selected_Project.description }}</p>
 			</div>
+			
+			<div class="row">
+			  <div class="col-md-6">
+				<p><strong>Faculty:</strong> {{ selected_Project.faculty_name }}</p>
+			  </div>
+			  <div class="col-md-3">
+				<p><strong>Minimum Year:</strong> {{ selected_Project.min_year }}</p>
+			  </div>
+			  <div class="col-md-3">
+				<p><strong>Minimum CGPA:</strong> {{ selected_Project.min_cgpa }}</p>
+			  </div>
+			</div>
+			
+			<!-- Departments -->
+			<div class="mb-3">
+				<h5 class="fw-bold">Departments eligible</h5>
+				<ul class="list-group">
+				  <li *ngFor="let dept of selected_Project.department" class="list-group-item">
+					{{ dept.dept_name}} 
+				  </li>
+				</ul>
+			  </div>
 	  
 			<!-- Prerequisites -->
-			<p><strong>Prerequisite Courses:</strong></p>
-			<ul class="list-group">
-			  <li *ngFor="let course of selected_Project.prerequisites" class="list-group-item">
-				{{ course.course_name }} - {{ course.course_code }}
-			  </li>
-			</ul>
+			<div class="mb-3">
+			  <h5 class="fw-bold">Prerequisite Courses</h5>
+			  <ul class="list-group">
+				<li *ngFor="let course of selected_Project.prerequisites" class="list-group-item">
+				  {{ course.course_name }} - <span class="text-muted">{{ course.course_code }}</span>
+				</li>
+			  </ul>
+			</div>
 	  
 			<hr />
 	  
 			<!-- Application Section -->
 			<div *ngIf="!applied.includes(selected_Project.title)">
 			  <div class="mb-3">
-				<label><strong>Bio:</strong></label>
-				<input type="text" class="form-control" [(ngModel)]="applicationsData[selected_Project.project_id].bio">
+				<label class="fw-bold">Bio</label>
+				<textarea class="form-control" rows="3" [(ngModel)]="applicationsData[selected_Project.project_id].bio"></textarea>
 			  </div>
 	  
-			  <!-- File Upload -->
-			  <h5 class="mt-4">Project Documents</h5>
-			  <div class="row">
-				<div class="col-md-6 mb-3">
+			  <!-- File Upload Section -->
+			  <h5 class="fw-bold">Project Documents</h5>
+			  <div class="row mb-3">
+				<div class="col-md-6">
 				  <input type="file" multiple (change)="onFilesSelected($event, selected_Project.project_id)" class="form-control">
 				</div>
 			  </div>
 	  
 			  <!-- Manual Document Entry -->
 			  <div class="row">
-				<div class="col-md-5 mb-3">
+				<div class="col-md-5">
 				  <input type="text" class="form-control" [(ngModel)]="tempDocName" placeholder="Document Name">
 				</div>
-				<div class="col-md-5 mb-3">
+				<div class="col-md-5">
 				  <input type="text" class="form-control" [(ngModel)]="tempDocUrl" placeholder="Document URL">
 				</div>
-				<div class="col-md-2 mb-3">
+				<div class="col-md-2">
 				  <button class="btn btn-primary w-100" (click)="addDocument(tempDocName, tempDocUrl)">
 					<i class="bi bi-plus-lg"></i> Add
 				  </button>
 				</div>
 			  </div>
 	  
-			  <!-- Added Documents -->
-			  <div *ngFor="let doc of applicationsData[selected_Project.project_id]?.files; let i = index" class="mb-3 p-3 border rounded d-flex justify-content-between align-items-center bg-light">
+			  <!-- Added Documents List -->
+			  <div *ngFor="let doc of applicationsData[selected_Project.project_id]?.files; let i = index" class="mt-3 p-3 border rounded d-flex justify-content-between align-items-center bg-white shadow-sm">
 				<span>
-				  <a [href]="doc.url" target="_blank">{{ doc.name }}</a>
+				  <a [href]="doc.url" target="_blank" class="text-primary fw-semibold">{{ doc.name }}</a>
 				</span>
 				<button class="btn btn-danger btn-sm" (click)="removeFile(selected_Project.project_id, i)">
 				  <i class="bi bi-trash"></i> Remove
@@ -179,23 +194,23 @@
 			<!-- Status Section (If Applied) -->
 			<div *ngIf="applied.includes(selected_Project.title)">
 			  <p><strong>Bio:</strong> {{ applicationsData[selected_Project.project_id].bio }}</p>
-			  <h5 class="mt-3">Uploaded Documents</h5>
+			  <h5 class="mt-3 fw-bold">Uploaded Documents</h5>
 			  <ul class="list-group">
 				<li *ngFor="let doc of applicationsData[selected_Project.project_id]?.files" class="list-group-item">
-				  <a [href]="doc.url" target="_blank">{{ doc.name }}</a>
+				  <a [href]="doc.url" target="_blank" class="text-primary">{{ doc.name }}</a>
 				</li>
 			  </ul>
-	  
+			  
 			  <p class="mt-3"><strong>Status:</strong></p>
 			  <span class="badge" [ngClass]="getBadgeClass()">
 				{{ application.status }}
 			  </span>
 			</div>
-	  
+			
 			<hr />
 	  
 			<!-- Action Buttons -->
-			<div class="d-flex gap-2">
+			<div class="d-flex gap-3">
 			  <button class="btn btn-sm" [ngClass]="applied.includes(selected_Project.title) ? 'btn-success' : 'btn-primary'" [disabled]="applied.includes(selected_Project.title)" (click)="applyForProject(selected_Project, $event)">
 				<i class="bi bi-check-circle"></i> 
 				{{ applied.includes(selected_Project.title) ? 'Applied' : 'Apply' }}
@@ -204,10 +219,10 @@
 				<i class="bi bi-arrow-left"></i> Back
 			  </button>
 			</div>
-	  
 		  </div>
 		</div>
 	  </div>
+	  
 	  
 	  
 	</div>

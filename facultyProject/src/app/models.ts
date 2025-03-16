@@ -43,3 +43,17 @@ export interface project{
 	department? : department[]
 
 }
+
+export interface application{
+	application_id : number,
+	roll_no : number,
+	name : string,
+	cgpa : number,
+	year : number,
+	status : string,
+	department : string,
+	application_date : Date,
+	bio : string,
+	documents? : Doc[]
+
+}

@@ -1,3 +1,5 @@
+CREATE ROLE projectallotmentportal with login;
+
 create table Department(
 dept_id integer PRIMARY KEY,
 dept_name text UNIQUE NOT NULL
@@ -13,7 +15,7 @@ email text NOT NULL,
 Phone_no VARCHAR(10) NOT NULL UNIQUE,
 Department_id INTEGER,
 year integer NOT NULL,
-Cgpa integer NOT NULL,
+Cgpa decimal(2,2) NOT NULL,
 CONSTRAINT check_cgpa CHECK(cgpa >= 0 and cgpa <= 10),
 CONSTRAINT check_year CHECK(year >= 1 and year <= 8),
 CONSTRAINT fk_dept FOREIGN KEY (Department_id) REFERENCES Department(dept_id)
@@ -67,7 +69,7 @@ create table projects(
     faculty_id integer, 
 	Title text NOT NULL UNIQUE,
 	Description text NOT NULL,
-	Min_cgpa integer NOT NULL  CHECK (Min_cgpa >= 0 AND Min_cgpa <= 10),
+	Min_cgpa decimal(2,2) NOT NULL  CHECK (Min_cgpa >= 0 AND Min_cgpa <= 10),
     CONSTRAINT fk_faculty FOREIGN KEY (faculty_id) REFERENCES faculty(faculty_id)
 	
 );
@@ -118,7 +120,7 @@ SELECT
     p.description,
     p.min_cgpa,
     p.available_slots,
-    p.students_per_team,
+    p.students_per_team,    
     p.faculty_id,
 	p.min_year,
     ARRAY_AGG(DISTINCT pr.course_id) AS prerequisite_courses,
@@ -130,7 +132,7 @@ LEFT JOIN prereq pr ON p.project_id = pr.project_id
 LEFT JOIN project_documents pd ON p.project_id = pd.project_id
 GROUP BY p.project_id, f.firstname;
 
-SELECT * FROM project_details;
+-- SELECT * FROM project_details;
 
 
 CREATE or replace FUNCTION get_project_details(proj_id INTEGER)
@@ -138,7 +140,7 @@ RETURNS TABLE (
     project_id INTEGER,
     title TEXT,
     description TEXT,
-    min_cgpa INTEGER,
+    min_cgpa decimal(2,2),
     available_slots INTEGER,
     students_per_team INTEGER,
     faculty_id INTEGER,
@@ -169,7 +171,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- drop function get_project_details;
-SELECT * FROM get_project_details(2);
+-- SELECT * FROM get_project_details(2);
 
 create or replace function getcourse(course_id integer)
 returns var
@@ -206,6 +208,7 @@ CREATE TABLE team_project_applications (
     Application_id SERIAL PRIMARY KEY,
     Team_id INTEGER,
     Project_id INTEGER,
+    bio text,
     Application_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     Status VARCHAR(20) DEFAULT 'Pending' CHECK (Status IN ('Pending', 'Accepted', 'Rejected')),
     CONSTRAINT fk_team FOREIGN KEY (Team_id) REFERENCES teams(Team_id) ON DELETE CASCADE,
@@ -237,7 +240,6 @@ CREATE TABLE documents_applications (
     Document_id SERIAL PRIMARY KEY,
     Individual_Application_id INTEGER,
     Team_Application_id INTEGER,
-    Document_type VARCHAR(50) NOT NULL,
     Document_name VARCHAR(255) NOT NULL,
     Document_url TEXT,
     Upload_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -251,12 +253,26 @@ CREATE TABLE documents_applications (
     )
 );
 
-ALTER TABLE project_applications 
-ADD COLUMN bio text;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO projectallotmentportal;
 
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO projectallotmentportal;
 
+DO $$ 
+DECLARE 
+    view_rec RECORD;
+BEGIN
+    FOR view_rec IN 
+        SELECT table_name 
+        FROM information_schema.views 
+        WHERE table_schema = 'public'
+    LOOP
+        EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON %I TO projectallotmentportal;', view_rec.table_name);
+    END LOOP;
+END $$;
 
-ALTER TABLE team_project_applications
-ADD COLUMN bio text;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public 
+GRANT ALL PRIVILEGES ON TABLES TO projectallotmentportal;
 
+ALTER DEFAULT PRIVILEGES IN SCHEMA public 
+GRANT ALL PRIVILEGES ON sequences TO projectallotmentportal;
 
