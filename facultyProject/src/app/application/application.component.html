@@ -3,49 +3,102 @@
 	<div class="row">
 	  <div class="col-md-12">
 		<div class="card shadow-lg border-0 rounded-4">
-			<div *ngIf="!showApp">
-		  <div class="card-header bg-primary text-white text-center">
-			<h3 class="mb-0">Project Listings</h3>
-		  </div>
-		  <div class="card-body bg-light p-4">
-			<table class="table table-hover text-center align-middle">
-			  <thead class="table-dark">
-				<tr>
-				  <th>ID</th>
-				  <th>Student Name</th>
-				  <th>Status</th>
-				  <th>Action</th>
-				</tr>
-			  </thead>
-			  <tbody>
-				<tr
-				  *ngFor="let application of applications | paginate: { itemsPerPage: 5, currentPage: page }"
-				  class="table-light"
-				>
-				  <td>{{ application.application_id}}</td>
-				  <td class="fw-bold">{{ application.name }}</td>
-				  <td>
-					<span>{{ application.status }}</span>
-				  </td>
-				  <td>
-					<button
-					  class="btn btn-outline-primary btn-sm px-3"
-					  (click)="selectApplication(application)"
-					>
-					  <i class="bi bi-check-circle"></i> Select
-					</button>
-				  </td>
-				</tr>
-			  </tbody>
-			</table>
-		  </div>
-		  <div class="card-footer bg-light text-center">
-			<pagination-controls
-			  (pageChange)="page = $event"
-			  class="d-flex justify-content-center"
-			></pagination-controls>
-		  </div>
-			</div>
+			<div *ngIf="!showApp && !pref">
+				<!-- Applications Section -->
+				<div class="card-header bg-primary text-white text-center">
+				  <h3 class="mb-0">Applications</h3>
+				</div>
+			  
+				<div class="card-body bg-light p-4">
+				  <ng-container *ngIf="applications.length > 0; else noApplications">
+					<div class="card shadow-lg border-0 rounded-4">
+					  <div class="card-body">
+						<button
+						  class="btn btn-outline-primary btn-sm px-3"
+						  (click)="setpreferencce()"
+						  [disabled]="applications.length === 0"
+						>
+						  <i class="bi bi-check-circle"></i> Set Preference
+						</button>
+						<table class="table table-hover text-center align-middle">
+						  <thead class="table-light">
+							<tr>
+							  <th>ID</th>
+							  <th>Student Name</th>
+							  <th>Status</th>
+							  <th>Action</th>
+							</tr>
+						  </thead>
+						  <tbody>
+							<tr
+							  *ngFor="let application of applications | paginate: { itemsPerPage: 5, currentPage: page }"
+							  class="table-light"
+							>
+							  <td>{{ application.application_id }}</td>
+							  <td class="fw-bold">{{ application.name }}</td>
+							  <td>{{ application.status }}</td>
+							  <td>
+								<button
+								  class="btn btn-outline-primary btn-sm px-3"
+								  (click)="selectApplication(application)"
+								>
+								  <i class="bi bi-check-circle"></i> Select
+								</button>
+							  </td>
+							</tr>
+						  </tbody>
+						</table>
+						<div class="card-footer bg-light text-center">
+						  <pagination-controls
+							(pageChange)="page = $event"
+							class="d-flex justify-content-center"
+						  ></pagination-controls>
+						</div>
+					  </div>
+					</div>
+				  </ng-container>
+				  <ng-template #noApplications>
+					<p class="text-secondary">No applications yet!</p>
+				  </ng-template>
+			  
+				  <!-- Allocations Section -->
+				  <ng-container *ngIf="allocations.length > 0">
+					<div class="card shadow-lg border-0 rounded-4 mt-4">
+					  <div class="card-header bg-primary text-white text-center">
+						<h3 class="mb-0">Gale Shapley Allocations</h3>
+					  </div>
+					  <div class="card-body">
+						<table class="table table-hover text-center align-middle">
+						  <thead class="table-light">
+							<tr>
+							  <th>ID</th>
+							  <th>Student Name</th>
+							  <th>Status</th>
+							</tr>
+						  </thead>
+						  <tbody>
+							<tr
+							  *ngFor="let allocation of allocations | paginate: { itemsPerPage: 5, currentPage: page }"
+							  class="table-light"
+							>
+							  <td>{{ allocation.application_id }}</td>
+							  <td class="fw-bold">{{ allocation.name }}</td>
+							  <td>{{ allocation.status }}</td>
+							</tr>
+						  </tbody>
+						</table>
+						<div class="card-footer bg-light text-center">
+						  <pagination-controls
+							(pageChange)="page = $event"
+							class="d-flex justify-content-center"
+						  ></pagination-controls>
+						</div>
+					  </div>
+					</div>
+				  </ng-container>
+				</div>
+			  </div>
+			  
 			<div *ngIf="showApp">
 				<div class="card shadow-lg border-0 rounded-4">
 				  <!-- Card Header -->
@@ -129,6 +182,13 @@
 					</div>
 				  </div>
 				</div>
+			  </div>
+
+			  <div *ngIf="pref">
+				<app-preference [applications]="applications" 
+				[faculty_id]="faculty_id" 
+				[project_id]="projectselected.project_id"
+				(pref)="nopref($event)"></app-preference>
 			  </div>
 			  
 		</div>

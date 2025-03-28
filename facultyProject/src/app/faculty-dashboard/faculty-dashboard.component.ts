@@ -8,11 +8,12 @@ import { ProfileComponent } from "../profile/profile.component";
 import { CommonModule } from '@angular/common';
 import { ProjectsService } from '../projects.service';
 import { application } from 'express';
+import { PreferenceComponent } from "../preference/preference.component";
 
 @Component({
   selector: 'app-faculty-dashboard',
   standalone: true,
-  imports: [ApplicationComponent, ProjectComponent, ProfileComponent, CommonModule],
+  imports: [ApplicationComponent, ProjectComponent, ProfileComponent, CommonModule, PreferenceComponent],
   templateUrl: './faculty-dashboard.component.html',
   styleUrl: './faculty-dashboard.component.css'
 })
@@ -28,7 +29,8 @@ export class FacultyDashboardComponent {
   tabs = [
     { key: 'profile', label: 'Profile' },
     { key: 'projects', label: 'Projects' },
-    { key: 'applications', label: 'Applications' }
+    { key: 'applications', label: 'Applications' },
+    {key : 'application selection', label: 'Appselect'}
   ];
   
 
@@ -76,7 +78,7 @@ export class FacultyDashboardComponent {
 
   selectApplication(project: project) {
     this.selectedApplication = project;
-    console.log("hiiiiiiiiii",project);
+    // console.log("hiiiiiiiiii",project);
   }
 
   selectTab(tab: string) {

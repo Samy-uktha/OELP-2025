@@ -11,7 +11,7 @@
 				<button class="btn btn-primary btn-sm mt-2" (click)="AddProj()">Add a new project</button>
 			  </div>
 			  <table class="table table-hover text-center align-middle">
-				<thead class="table-dark">
+				<thead class="table-responsive table-bordered">
 				  <tr>
 					<th>ID</th>
 					<th>Project Name</th>
@@ -54,7 +54,7 @@
   </div>
   
   <div *ngIf="showProj">
-	<app-project-details [project]="selectedProject"></app-project-details>
+	<app-project-details [project]="selectedProject" (back)="backfromProject($event)"></app-project-details>
   </div>
   
   <div *ngIf="addproj">

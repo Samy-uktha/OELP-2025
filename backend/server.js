@@ -3,6 +3,7 @@ const cors = require("cors"); // Import CORS
 const pool = require("./db");
 const multer = require("multer");
 const path = require("path");
+// const { saveAllocations } = require("./db"); 
 
 
 
@@ -523,9 +524,11 @@ app.delete("/delete_application", async (req, res) => {
 app.get('/get_applications/:projectId', async (req, res) => {
     try {
         const projectId = req.params.projectId;
+
+        // Fetch applications
         const result = await pool.query(
-            `SELECT a.Application_id, s.firstName || ' ' || s.lastName as name , s.cgpa, s.Roll_no, s.year, a.Status, 
-            a.bio, d.dept_name, a.Application_date
+            `SELECT a.Application_id, s.firstName || ' ' || s.lastName AS name, s.cgpa, s.Roll_no, 
+                    s.year, a.Status, a.bio, d.dept_name, a.Application_date
              FROM project_applications a
              JOIN students s ON a.student_id = s.Roll_no
              JOIN Department d ON s.Department_id = d.dept_id
@@ -534,24 +537,30 @@ app.get('/get_applications/:projectId', async (req, res) => {
             [projectId]
         );
 
-        applications = result.rows;
+        let applications = result.rows;
+        console.log("Applications for project", projectId, applications);
 
-        for (let app of applications){
-            const app_id = app.application_id;
-
+        // Fetch all document data in parallel
+        const docPromises = applications.map(async (app) => {
             const docResult = await pool.query(
-                `SELECT document_name as doc_name, document_url as doc_url from documents_applications
-                 where individual_application_id = $1`,[app_id]
+                `SELECT document_name AS doc_name, document_url AS doc_url 
+                 FROM documents_applications 
+                 WHERE individual_application_id = $1`,
+                [app.application_id]
             );
+            app.documents = docResult.rows; // Attach documents to each application
+        });
 
-            app.documents = docResult.rows;
-        }
-        res.json(applications);
+        await Promise.all(docPromises); // Wait for all document queries to finish
+
+        console.log('Database Response:', applications);
+        res.json(applications); // Send final response
     } catch (err) {
-        console.error(err);
+        console.error('Error fetching applications:', err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
 
 app.patch('/applications/:id', async (req, res) => {
     const { id } = req.params;
@@ -567,7 +576,73 @@ app.patch('/applications/:id', async (req, res) => {
 });
 
 
+app.post('/savepref', async (req, res) => {
+    const { preferences } = req.body;
 
+    if (!preferences || !Array.isArray(preferences)) {
+        return res.status(400).json({ error: "Invalid data format" });
+    }
+
+    try {
+        const values = preferences.map(pref => `(${pref.faculty_id}, ${pref.student_id}, ${pref.project_id}, ${pref.preference_rank})`).join(',');
+
+        const query = `
+            INSERT INTO faculty_preferences (faculty_id, student_id, project_id, rank) 
+            VALUES ${values} 
+            ON CONFLICT (faculty_id, student_id, project_id) 
+            DO UPDATE SET rank = EXCLUDED.rank;
+        `;
+
+        await pool.query(query);
+        res.status(200).json({ message: "Preferences saved successfully!" });
+    } catch (error) {
+        console.error("Error saving preferences:", error);
+        res.status(500).json({ error: "Failed to save preferences" });
+    }
+});
+
+app.get('/Allocations/:id', async (req,res) => {
+    try {
+        const id = req.params.id;
+            const studResult = await pool.query(
+                `SELECT a.Application_id, s.firstName || ' ' || s.lastName as name , s.cgpa, s.Roll_no, s.year, a.Status, 
+                a.bio, d.dept_name, a.Application_date
+                 FROM project_applications a
+                 JOIN project_allocations p ON p.student_id = a.student_id and p.project_id = a.Project_id
+                 JOIN students s ON a.student_id = s.Roll_no
+                 JOIN Department d ON s.Department_id = d.dept_id
+                 WHERE a.Project_id = $1
+                 ORDER BY a.Application_date DESC; `,[id]
+            );
+            applications = studResult.rows;
+            res.json(applications);
+            
+        }
+       
+        
+     catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+
+});
+
+app.get('/preferences/:id', async(req,res) => {
+    try{
+        const id = req.params.id;
+            const studResult = await pool.query(
+                `SELECT CONCAT(s.FirstName, ' ', s.LastName) AS name, f.rank from faculty_preferences f, students s 
+                where f.project_id = $1 and s.Roll_no = f.student_id`,[id]
+            );
+            pref = studResult.rows;
+            res.json(pref);
+    }
+    catch(err){
+        console.error(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
 // Start server
 app.listen(5001, () => console.log("Server running on port 5001"));

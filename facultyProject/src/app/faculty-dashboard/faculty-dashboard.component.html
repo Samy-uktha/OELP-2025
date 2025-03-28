@@ -20,7 +20,7 @@
   
 			  <!-- Applications Tab with Dropdown -->
 			  <li class="nav-item">
-				<a class="nav-link d-flex justify-content-between align-items-center"
+				<a class="nav-link"
 				   [class.active]="selectedTab === 'applications'"
 				   role="button"
 				   (click)="toggleApplications()">
@@ -72,7 +72,7 @@
 			  <h2 class="mb-4 text-center text-secondary">Applications</h2>
   
 			  <div *ngIf="selectedApplication">
-				<app-application [projectselected]="selectedApplication"></app-application>
+				<app-application [projectselected]="selectedApplication" [faculty_id]="faculty.faculty_id"></app-application>
 			  </div>
 			  <div *ngIf="!selectedApplication" class="text-center text-muted">
 				Select a project from the list.

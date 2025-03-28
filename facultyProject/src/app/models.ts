@@ -54,6 +54,12 @@ export interface application{
 	department : string,
 	application_date : Date,
 	bio : string,
-	documents? : Doc[]
+	documents? : Doc[],
+	preference? : number
 
+}
+
+export interface preference{
+	name : string,
+	rank : number
 }

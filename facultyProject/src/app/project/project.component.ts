@@ -62,7 +62,9 @@ back(event : boolean){
     });
   }
   
-
+  backfromProject(event : boolean){
+    this.showProj = event;
+  }
 
 
 }

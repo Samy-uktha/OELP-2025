@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { course, department, project } from '../models';
 import { CommonModule } from '@angular/common';
 import { ProjectsService } from '../projects.service';
@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 })
 export class ProjectDetailsComponent {
  @Input() project : project = {} as project;
+ @Output() back = new EventEmitter<boolean>();
  isEditing : boolean = false;
  tempDocName: string = '';
   tempDocUrl: string = '';
@@ -149,6 +150,10 @@ saveChanges() {
 
 cancelChanges() {
   this.isEditing = false; // Simply exit edit mode
+}
+
+goback(){
+  this.back.emit(false);
 }
 
 }

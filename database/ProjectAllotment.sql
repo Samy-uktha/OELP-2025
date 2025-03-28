@@ -276,3 +276,85 @@ GRANT ALL PRIVILEGES ON TABLES TO projectallotmentportal;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public 
 GRANT ALL PRIVILEGES ON sequences TO projectallotmentportal;
 
+
+CREATE TABLE student_preferences ( -- to store the prefernces of the students, lower rank higher preference
+    student_id INTEGER,
+    project_id INTEGER,
+    rank INTEGER NOT NULL,
+    PRIMARY KEY (student_id, project_id),
+    CONSTRAINT fk_student FOREIGN KEY (student_id) REFERENCES students(Roll_no) ON DELETE CASCADE,
+    CONSTRAINT fk_project FOREIGN KEY (project_id) REFERENCES projects(Project_id) ON DELETE CASCADE,
+    CONSTRAINT check_rank CHECK (rank > 0)
+);
+
+CREATE TABLE faculty_preferences (
+    faculty_id INTEGER,
+    student_id INTEGER,
+    project_id INTEGER,
+    rank INTEGER NOT NULL,
+    PRIMARY KEY (faculty_id, student_id, project_id),
+    CONSTRAINT fk_faculty FOREIGN KEY (faculty_id) REFERENCES faculty(faculty_id) ON DELETE CASCADE,
+    CONSTRAINT fk_student FOREIGN KEY (student_id) REFERENCES students(Roll_no) ON DELETE CASCADE,
+    CONSTRAINT fk_project FOREIGN KEY (project_id) REFERENCES projects(Project_id) ON DELETE CASCADE,
+    CONSTRAINT check_rank CHECK (rank > 0)
+);
+
+insert into faculty_preferences values 
+(1, 101, 2, 1),
+(1, 102, 2, 2),
+(1, 103, 2, 3),
+(1, 103, 4, 1),
+(1, 103, 6, 1);
+
+
+insert into student_preferences values 
+(101,2,1),
+(101,4,2),
+(101,1,3),
+(102,2,1),
+(102,11,2),
+(102,13,3),
+(103,2,1),
+(103,3,2),
+(103,6,3);
+
+select * from project_allocations;
+delete from project_allocations ;
+-- select available_slots from projects where project_id = 2;
+
+ update projects set available_slots = 2 where project_id = 2;
+
+CREATE TABLE project_allocations ( -- to store the allocations of the project
+    student_id INTEGER,
+    project_id INTEGER,
+    faculty_id INTEGER,
+    allocation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (student_id, project_id),
+    CONSTRAINT fk_student FOREIGN KEY (student_id) REFERENCES students(Roll_no) ON DELETE CASCADE,
+    CONSTRAINT fk_project FOREIGN KEY (project_id) REFERENCES projects(Project_id) ON DELETE CASCADE,
+    CONSTRAINT fk_faculty FOREIGN KEY (faculty_id) REFERENCES faculty(faculty_id) ON DELETE CASCADE
+);
+
+-- update project_applications set status = 'Pending';
+select * from project_applications;
+
+select * from faculty_preferences;
+select * from student_preferences;
+
+CREATE OR REPLACE FUNCTION trigger_gale_shapley()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      PERFORM pg_notify('run_gale_shapley', 'run');
+      RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+
+    DROP TRIGGER IF EXISTS trigger_student_preferences ON student_preferences;
+    CREATE TRIGGER trigger_student_preferences
+    AFTER INSERT OR UPDATE OR DELETE ON student_preferences
+    FOR EACH STATEMENT EXECUTE FUNCTION trigger_gale_shapley();
+
+    DROP TRIGGER IF EXISTS trigger_faculty_preferences ON faculty_preferences;
+    CREATE TRIGGER trigger_faculty_preferences
+    AFTER INSERT OR UPDATE OR DELETE ON faculty_preferences
+    FOR EACH STATEMENT EXECUTE FUNCTION trigger_gale_shapley();
