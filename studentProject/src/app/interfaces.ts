@@ -41,6 +41,7 @@ export interface projApplication {
     status: Status;
     docs: Pdf[];
     timestamp: Date;
+	preference: Number
 }
 
 export interface department{
@@ -61,4 +62,10 @@ export interface project{
 	min_year : number,
 	department? : department[]
 
+}
+
+export interface preference{
+	student_id :number,
+	project_id : number,
+	rank: number
 }
