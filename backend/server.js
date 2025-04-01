@@ -601,6 +601,35 @@ app.post('/savepref', async (req, res) => {
     }
 });
 
+app.post('/savestudentpref', async (req, res) => {
+    const { user_id, preferences } = req.body;
+    console.log(req.body);
+    // if (!user_id || !Array.isArray(preferences)) {
+    //     return res.status(400).json({ error: "Invalid data format" });
+    // }
+console.log("Received request to save preferences:", req.body);
+console.log("User ID:", user_id);
+        console.log("Preferences:", preferences);
+    try {
+        
+
+        const values = preferences.map(pref => `( ${pref.student_id}, ${pref.project_id}, ${pref.preference_rank})`).join(',');
+
+        const query = `
+            INSERT INTO student_preferences (student_id, project_id, rank) 
+            VALUES ${values} 
+            ON CONFLICT (student_id, project_id) 
+            DO UPDATE SET rank = EXCLUDED.rank;
+        `;
+
+        await pool.query(query);
+        res.status(200).json({ message: "Student Preferences saved successfully!" });
+    } catch (error) {
+        console.error("Error saving Student preferences:", error);
+        res.status(500).json({ error: "Failed to save Student preferences" });
+    }
+});
+
 app.get('/Allocations/:id', async (req,res) => {
     try {
         const id = req.params.id;
@@ -643,6 +672,23 @@ app.get('/preferences/:id', async(req,res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
+app.get('/getstudentpref/:id', async (req, res) => {
+    try {
+        console.log(req.params.id);
+        const studentId = req.params.id;
+        const result = await pool.query(
+            `SELECT project_id, rank FROM student_preferences WHERE student_id = $1 ORDER BY rank asc`,
+            [studentId]
+        );
+
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Error fetching student preferences:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
 
 // Start server
 app.listen(5001, () => console.log("Server running on port 5001"));
