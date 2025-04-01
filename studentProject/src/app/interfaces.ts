@@ -65,7 +65,7 @@ export interface project{
 }
 
 export interface preference{
-	student_id :number,
+	student_id : number,
 	project_id : number,
-	rank: number
+	rank : number
 }

@@ -1,26 +1,44 @@
-import { Injectable } from '@angular/core';
+// import { Injectable } from '@angular/core';
+
+// @Injectable({
+//   providedIn: 'root'
+// })
+// export class ApplicationDataService {
+
+//   constructor() { }
+// }
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { preference } from './interfaces';
+import { Injectable } from '@angular/core';
+import { map, Observable } from 'rxjs';
+import { projApplication, preference } from './interfaces';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApplicationDataService {
-  private apiUrl_pref = 'http://localhost:5001/savepref';
-  private apiUrl_pref_past = 'http://localhost:5001/preferences';
+  apiUrl_pref = 'http://localhost:5001/savestudentpref'
+  apiUrl_pref_past = 'http://localhost:5001/getstudentpref'
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  // Fetch student's saved preferences
-  getPref(id: number): Observable<preference[]> {
-    return this.http.get<preference[]>(`${this.apiUrl_pref_past}/${id}`);
-  }
-
-  // Save updated preferences to database
-  savePreferences(studentId: number, preferences: preference[]): Observable<any> {
-    return this.http.post(this.apiUrl_pref, { studentId, preferences });
+  savePreferences(preferences:any[]) {
+    console.log("pref--",preferences)
+    return this.http.post(this.apiUrl_pref, { preferences });
   }
   
-}
+  // getPreferences(studentId: number): Observable<any[]> {
+  //   return this.http.get<any[]>(`/getstudentpref/${studentId}`);
+  // }
+  getPreferences(id : number):Observable<preference[]>{
+    console.log("sent student id",id);
+    return this.http.get<preference[]>(`${this.apiUrl_pref_past}/${id}`).pipe(
+      map((data: any[]) =>
+        data.map(pref => ({
+          project_id : pref.project_id,
+          rank : pref.rank
+        }) as preference)
+      )
+    );
+  }
 
+    }

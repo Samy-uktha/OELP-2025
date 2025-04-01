@@ -2,8 +2,6 @@ require("dotenv").config();
 const { Pool } = require("pg");
 
 const pool = new Pool({
-  user: 'postgres', // SHOULD CHANGE IT TO YOUR USER NAME 
-  password: 'postgres',
   user: 'abhiramiriyer', // Replace with your actual username
   host: 'localhost',
   database: 'ProjectAllotment',
