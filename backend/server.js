@@ -673,6 +673,34 @@ app.get('/preferences/:id', async(req,res) => {
     }
 });
 
+app.get('/getstudentranks/:studentId/:projectId', async (req, res) => {
+    const {studentId, projectId} = req.params;
+    console.log("request params are",req.params)
+    try {
+        const query = `
+            SELECT rank 
+            FROM faculty_preferences 
+            WHERE student_id = $1 AND project_id = $2;
+        `;
+        const result = await pool.query(query, [studentId, projectId]);
+
+        // if (result.rows.length > 0) {
+        //     res.status(200).json({ rank: result.rows[0].rank });
+        // } else {
+        //     res.status(200).json({ rank: "Not Ranked" });
+        // }
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "No rank found for this project" });
+        }
+
+        res.json(result.rows[0]); // Send the rank as response
+    } catch (error) {
+        console.error("Error fetching student rank:", error);
+        res.status(500).json({ error: "Failed to fetch rank" });
+    }
+});
+
+
 app.get('/getstudentpref/:id', async (req, res) => {
     try {
         console.log(req.params.id);
