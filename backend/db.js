@@ -117,96 +117,214 @@ async function galeShapley() {
   return projectAllocations;
 }
 
+// async function galeShapley_facpropose() {
+//   const { studentPreferences, facultyPreferences } = await getPreferences();
+
+//   let studentAssignments = {}; // Stores which project a student is assigned to
+//   let projectSlots = {}; // Stores available slots per project
+//   let proposals = {}; // Faculty proposals for students
+
+//   // Initialize available slots for each project
+//   const projects = await pool.query("SELECT project_id, available_slots FROM projects");
+//   projects.rows.forEach(({ project_id, available_slots }) => {
+//     projectSlots[project_id] = available_slots;
+//   });
+
+//   // Initialize faculty proposals
+//   facultyPreferences.forEach(({ faculty_id, student_id, project_id }) => {
+//     if (!proposals[Number(student_id)]) {
+//       proposals[Number(student_id)] = [];
+//     }
+//     proposals[Number(student_id)].push({ faculty_id, project_id });
+//   });
+
+//   // Students accept the best available project
+//   let unassignedStudents = new Set(Object.keys(proposals));
+
+//   while (unassignedStudents.size > 0) {
+//     let student_id = Array.from(unassignedStudents)[0];
+
+//     if (!proposals[student_id] || proposals[student_id].length === 0) {
+//       // No proposals available, remove student from unassigned set
+//       unassignedStudents.delete(student_id);
+//       continue;
+//     }
+
+//     // Get the student's preferred project list
+//     let studentChoices = studentPreferences
+//       .filter((s) => s.student_id == Number(student_id))
+//       .map((s) => s.project_id);
+
+//     // Check proposals made to the student
+//     let receivedProposals = proposals[Number(student_id)].map((p) => p.project_id);
+
+//     // Select the highest-ranked project from the student's preference list
+//     let bestChoice = studentChoices.find((p) => receivedProposals.includes(p));
+
+//     if (!bestChoice) {
+//       // If no preferred project matches, remove student from unassigned set
+//       unassignedStudents.delete(student_id);
+//       continue;
+//     }
+
+//     // Check if the project has available slots
+//     if (projectSlots[bestChoice] > 0) {
+//       // Assign the student to this project
+//       studentAssignments[student_id] = bestChoice;
+//       projectSlots[bestChoice]--;
+//       unassignedStudents.delete(student_id);
+//     } else {
+//       // Project is full, check if a lower-ranked student is already assigned
+//       let assignedStudents = Object.entries(studentAssignments)
+//         .filter(([s_id, p_id]) => p_id === bestChoice)
+//         .map(([s_id]) => s_id);
+
+//       let worstStudent = assignedStudents
+//         .sort((a, b) => {
+//           let rankA = facultyPreferences.find(
+//             (f) => f.student_id == a && f.project_id == bestChoice
+//           )?.rank ?? Infinity;
+//           let rankB = facultyPreferences.find(
+//             (f) => f.student_id == b && f.project_id == bestChoice
+//           )?.rank ?? Infinity;
+//           return rankB - rankA; // Sort descending (worst ranked last)
+//         })
+//         .pop(); // Get the worst student assigned
+
+//       let newStudentRank = facultyPreferences.find(
+//         (f) => f.student_id == student_id && f.project_id == bestChoice
+//       )?.rank ?? Infinity;
+
+//       let worstStudentRank = facultyPreferences.find(
+//         (f) => f.student_id == worstStudent && f.project_id == bestChoice
+//       )?.rank ?? Infinity;
+
+//       if (newStudentRank < worstStudentRank) {
+//         // Replace the worst student with the new student
+//         delete studentAssignments[worstStudent];
+//         studentAssignments[student_id] = bestChoice;
+//         unassignedStudents.delete(student_id);
+//         if (worstStudent) unassignedStudents.add(worstStudent); // Add the removed student back
+//       } else {
+//         // If the student cannot replace anyone, remove them from the unassigned list
+//         unassignedStudents.delete(student_id);
+//       }
+//     }
+//   }
+
+//   return studentAssignments;
+// }
+
 async function galeShapley_facpropose() {
+  // Get preferences from your data source.
   const { studentPreferences, facultyPreferences } = await getPreferences();
 
-  let studentAssignments = {}; // Stores which project a student is assigned to
-  let projectSlots = {}; // Stores available slots per project
-  let proposals = {}; // Faculty proposals for students
+  // Build a lookup for each student’s sorted project preferences.
+  // Map key: student_id, value: sorted array of { project_id, rank }
+  const studentPrefMap = new Map();
+  studentPreferences.forEach(pref => {
+    const sid = Number(pref.student_id);
+    if (!studentPrefMap.has(sid)) {
+      studentPrefMap.set(sid, []);
+    }
+    studentPrefMap.get(sid).push({ project_id: pref.project_id, rank: pref.rank });
+  });
+  // Sort each student’s preferences by rank (ascending)
+  for (const [sid, prefs] of studentPrefMap.entries()) {
+    prefs.sort((a, b) => a.rank - b.rank);
+  }
 
-  // Initialize available slots for each project
-  const projects = await pool.query("SELECT project_id, available_slots FROM projects");
-  projects.rows.forEach(({ project_id, available_slots }) => {
+  // Build a lookup for faculty rankings.
+  // Key is `${student_id}-${project_id}` and value is the rank.
+  const facultyRankMap = new Map();
+  facultyPreferences.forEach(pref => {
+    const key = `${Number(pref.student_id)}-${pref.project_id}`;
+    facultyRankMap.set(key, pref.rank);
+  });
+
+  // Build proposals from faculty. For each student, collect all proposals.
+  // Map key: student_id, value: array of { faculty_id, project_id }
+  const proposals = new Map();
+  facultyPreferences.forEach(pref => {
+    const sid = Number(pref.student_id);
+    if (!proposals.has(sid)) {
+      proposals.set(sid, []);
+    }
+    proposals.get(sid).push({ faculty_id: pref.faculty_id, project_id: pref.project_id });
+  });
+
+  // Get available slots for each project.
+  const projectSlots = {};
+  const projectsResult = await pool.query("SELECT project_id, available_slots FROM projects");
+  projectsResult.rows.forEach(({ project_id, available_slots }) => {
     projectSlots[project_id] = available_slots;
   });
 
-  // Initialize faculty proposals
-  facultyPreferences.forEach(({ faculty_id, student_id, project_id }) => {
-    if (!proposals[Number(student_id)]) {
-      proposals[Number(student_id)] = [];
-    }
-    proposals[Number(student_id)].push({ faculty_id, project_id });
-  });
+  // Object to store final student assignments: { student_id: project_id }
+  const studentAssignments = {};
 
-  // Students accept the best available project
-  let unassignedStudents = new Set(Object.keys(proposals));
+  // Start with all students who have received proposals.
+  const unassignedStudents = new Set(proposals.keys());
 
   while (unassignedStudents.size > 0) {
-    let student_id = Array.from(unassignedStudents)[0];
+    // Pick one unassigned student.
+    const student_id = unassignedStudents.values().next().value;
+    const studentProposals = proposals.get(student_id) || [];
 
-    if (!proposals[student_id] || proposals[student_id].length === 0) {
-      // No proposals available, remove student from unassigned set
+    // If the student has no proposals, remove and continue.
+    if (studentProposals.length === 0) {
       unassignedStudents.delete(student_id);
       continue;
     }
 
-    // Get the student's preferred project list
-    let studentChoices = studentPreferences
-      .filter((s) => s.student_id == Number(student_id))
-      .map((s) => s.project_id);
-
-    // Check proposals made to the student
-    let receivedProposals = proposals[Number(student_id)].map((p) => p.project_id);
-
-    // Select the highest-ranked project from the student's preference list
-    let bestChoice = studentChoices.find((p) => receivedProposals.includes(p));
-
-    if (!bestChoice) {
-      // If no preferred project matches, remove student from unassigned set
+    // Get the student's sorted list of preferred projects.
+    const studentPrefs = studentPrefMap.get(student_id) || [];
+    // Create a set of projects that have proposed to this student.
+    const proposedProjects = new Set(studentProposals.map(p => p.project_id));
+    // From the student's preference list, pick the first project that was proposed.
+    const bestChoiceObj = studentPrefs.find(pref => proposedProjects.has(pref.project_id));
+    if (!bestChoiceObj) {
       unassignedStudents.delete(student_id);
       continue;
     }
+    const bestChoice = bestChoiceObj.project_id;
 
-    // Check if the project has available slots
+    // If the project has available slots, assign the student.
     if (projectSlots[bestChoice] > 0) {
-      // Assign the student to this project
       studentAssignments[student_id] = bestChoice;
       projectSlots[bestChoice]--;
       unassignedStudents.delete(student_id);
     } else {
-      // Project is full, check if a lower-ranked student is already assigned
-      let assignedStudents = Object.entries(studentAssignments)
-        .filter(([s_id, p_id]) => p_id === bestChoice)
-        .map(([s_id]) => s_id);
+      // Project is full; find the worst-ranked student currently assigned to this project.
+      const assignedStudents = Object.entries(studentAssignments)
+        .filter(([sid, pid]) => pid === bestChoice)
+        .map(([sid]) => Number(sid));
 
-      let worstStudent = assignedStudents
-        .sort((a, b) => {
-          let rankA = facultyPreferences.find(
-            (f) => f.student_id == a && f.project_id == bestChoice
-          )?.rank ?? Infinity;
-          let rankB = facultyPreferences.find(
-            (f) => f.student_id == b && f.project_id == bestChoice
-          )?.rank ?? Infinity;
-          return rankB - rankA; // Sort descending (worst ranked last)
-        })
-        .pop(); // Get the worst student assigned
+      let worstStudent = null;
+      let worstStudentRank = -1; // Higher number is worse
 
-      let newStudentRank = facultyPreferences.find(
-        (f) => f.student_id == student_id && f.project_id == bestChoice
-      )?.rank ?? Infinity;
+      for (const sid of assignedStudents) {
+        const key = `${sid}-${bestChoice}`;
+        const rank = facultyRankMap.get(key) ?? Infinity;
+        if (rank > worstStudentRank) {
+          worstStudent = sid;
+          worstStudentRank = rank;
+        }
+      }
 
-      let worstStudentRank = facultyPreferences.find(
-        (f) => f.student_id == worstStudent && f.project_id == bestChoice
-      )?.rank ?? Infinity;
+      // Determine the current student's ranking for the project.
+      const currentKey = `${student_id}-${bestChoice}`;
+      const currentStudentRank = facultyRankMap.get(currentKey) ?? Infinity;
 
-      if (newStudentRank < worstStudentRank) {
-        // Replace the worst student with the new student
+      // If the current student has a better (lower) rank, replace the worst student.
+      if (currentStudentRank < worstStudentRank) {
         delete studentAssignments[worstStudent];
         studentAssignments[student_id] = bestChoice;
         unassignedStudents.delete(student_id);
-        if (worstStudent) unassignedStudents.add(worstStudent); // Add the removed student back
+        // Add the replaced student back for reprocessing.
+        unassignedStudents.add(worstStudent);
       } else {
-        // If the student cannot replace anyone, remove them from the unassigned list
+        // The current student cannot beat the worst student; remove from unassigned.
         unassignedStudents.delete(student_id);
       }
     }
@@ -214,6 +332,7 @@ async function galeShapley_facpropose() {
 
   return studentAssignments;
 }
+
 
 
 
