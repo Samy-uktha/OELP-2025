@@ -13,11 +13,19 @@ const pool = new Pool({
 async function getPreferences() {
   try {
     const studentPreferencesQuery = `
-      SELECT student_id, project_id, rank FROM student_preferences ORDER BY rank ASC;
+      SELECT sp.student_id, sp.project_id, sp.rank 
+      FROM student_preferences sp
+      JOIN project_applications pa ON sp.student_id = pa.student_id AND sp.project_id = pa.project_id
+      WHERE pa.status = 'Pending'
+      ORDER BY sp.rank ASC;
     `;
 
     const facultyPreferencesQuery = `
-      SELECT faculty_id, student_id, project_id, rank FROM faculty_preferences ORDER BY rank ASC;
+      SELECT fp.faculty_id, fp.student_id, fp.project_id, fp.rank
+      FROM faculty_preferences fp
+      JOIN project_applications pa ON fp.student_id = pa.student_id AND fp.project_id = pa.project_id
+      WHERE pa.status = 'Pending'
+      ORDER BY fp.rank ASC;
     `;
 
     const [studentPreferences, facultyPreferences] = await Promise.all([

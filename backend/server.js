@@ -566,14 +566,30 @@ app.patch('/applications/:id', async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
     console.log("Updating status:", status, "for application:", id);
+    
     try {
+        // Fetch project_id for the given application_id
+        const projQuery = await pool.query('SELECT project_id FROM project_applications WHERE application_id = $1', [id]);
+
+        if (projQuery.rows.length === 0) {
+            return res.status(404).json({ error: 'Application not found' });
+        }
+
+        const proj_id = projQuery.rows[0].project_id;
+
+        // Update application status
         await pool.query('UPDATE project_applications SET status = $1 WHERE application_id = $2', [status, id]);
+
+        // Decrement available slots in the associated project (only if status update is successful)
+        await pool.query('UPDATE projects SET available_slots = available_slots - 1 WHERE project_id = $1', [proj_id]);
+
         res.json({ success: true, message: 'Application status updated successfully' });
     } catch (error) {
         console.error('Error updating application status:', error);
         res.status(500).json({ error: 'Failed to update application status' });
     }
 });
+
 
 
 app.post('/savepref', async (req, res) => {
