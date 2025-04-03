@@ -1,9 +1,9 @@
 const express = require("express");
 const cors = require("cors"); // Import CORS
-const pool = require("./db");
+const {pool} = require("./db");
 const multer = require("multer");
 const path = require("path");
-// const { saveAllocations } = require("./db"); 
+ const { saveAllocations, saveAllocations_facpropose } = require("./db"); 
 
 
 
@@ -632,6 +632,35 @@ console.log("User ID:", user_id);
 
 app.get('/Allocations/:id', async (req,res) => {
     try {
+        await saveAllocations();
+        const id = req.params.id;
+            const studResult = await pool.query(
+                `SELECT a.Application_id, s.firstName || ' ' || s.lastName as name , s.cgpa, s.Roll_no, s.year, a.Status, 
+                a.bio, d.dept_name, a.Application_date
+                 FROM project_applications a
+                 JOIN project_allocations p ON p.student_id = a.student_id and p.project_id = a.Project_id
+                 JOIN students s ON a.student_id = s.Roll_no
+                 JOIN Department d ON s.Department_id = d.dept_id
+                 WHERE a.Project_id = $1
+                 ORDER BY a.Application_date DESC; `,[id]
+            );
+            applications = studResult.rows;
+            res.json(applications);
+            
+        }
+       
+        
+     catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+
+});
+
+app.get('/Allocations_facpropose/:id', async (req,res) => {
+    try {
+        await saveAllocations_facpropose();
         const id = req.params.id;
             const studResult = await pool.query(
                 `SELECT a.Application_id, s.firstName || ' ' || s.lastName as name , s.cgpa, s.Roll_no, s.year, a.Status, 
@@ -665,6 +694,7 @@ app.get('/preferences/:id', async(req,res) => {
                 where f.project_id = $1 and s.Roll_no = f.student_id`,[id]
             );
             pref = studResult.rows;
+            console.log(pref);
             res.json(pref);
     }
     catch(err){

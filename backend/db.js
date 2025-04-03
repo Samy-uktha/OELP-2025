@@ -124,10 +124,10 @@ async function galeShapley_facpropose() {
 
   // Initialize faculty proposals
   facultyPreferences.forEach(({ faculty_id, student_id, project_id }) => {
-    if (!proposals[student_id]) {
-      proposals[student_id] = [];
+    if (!proposals[Number(student_id)]) {
+      proposals[Number(student_id)] = [];
     }
-    proposals[student_id].push({ faculty_id, project_id });
+    proposals[Number(student_id)].push({ faculty_id, project_id });
   });
 
   // Students accept the best available project
@@ -137,23 +137,24 @@ async function galeShapley_facpropose() {
     let student_id = Array.from(unassignedStudents)[0];
 
     if (!proposals[student_id] || proposals[student_id].length === 0) {
+      // No proposals available, remove student from unassigned set
       unassignedStudents.delete(student_id);
       continue;
     }
 
     // Get the student's preferred project list
     let studentChoices = studentPreferences
-      .filter((s) => s.student_id == student_id)
+      .filter((s) => s.student_id == Number(student_id))
       .map((s) => s.project_id);
 
     // Check proposals made to the student
-    let receivedProposals = proposals[student_id].map((p) => p.project_id);
+    let receivedProposals = proposals[Number(student_id)].map((p) => p.project_id);
 
     // Select the highest-ranked project from the student's preference list
     let bestChoice = studentChoices.find((p) => receivedProposals.includes(p));
 
     if (!bestChoice) {
-      // If the student doesn't prefer any of the received projects, skip them
+      // If no preferred project matches, remove student from unassigned set
       unassignedStudents.delete(student_id);
       continue;
     }
@@ -174,27 +175,30 @@ async function galeShapley_facpropose() {
         .sort((a, b) => {
           let rankA = facultyPreferences.find(
             (f) => f.student_id == a && f.project_id == bestChoice
-          )?.rank;
+          )?.rank ?? Infinity;
           let rankB = facultyPreferences.find(
             (f) => f.student_id == b && f.project_id == bestChoice
-          )?.rank;
+          )?.rank ?? Infinity;
           return rankB - rankA; // Sort descending (worst ranked last)
         })
         .pop(); // Get the worst student assigned
 
       let newStudentRank = facultyPreferences.find(
         (f) => f.student_id == student_id && f.project_id == bestChoice
-      )?.rank;
+      )?.rank ?? Infinity;
 
       let worstStudentRank = facultyPreferences.find(
         (f) => f.student_id == worstStudent && f.project_id == bestChoice
-      )?.rank;
+      )?.rank ?? Infinity;
 
       if (newStudentRank < worstStudentRank) {
         // Replace the worst student with the new student
         delete studentAssignments[worstStudent];
         studentAssignments[student_id] = bestChoice;
-        unassignedStudents.add(worstStudent); // The removed student must reapply
+        unassignedStudents.delete(student_id);
+        if (worstStudent) unassignedStudents.add(worstStudent); // Add the removed student back
+      } else {
+        // If the student cannot replace anyone, remove them from the unassigned list
         unassignedStudents.delete(student_id);
       }
     }
@@ -202,6 +206,8 @@ async function galeShapley_facpropose() {
 
   return studentAssignments;
 }
+
+
 
 
 // Store allocations in the database
@@ -237,6 +243,32 @@ async function saveAllocations() {
   } finally {
     client.release(); // Release the client back to the pool
   }
+}
+
+async function saveAllocations_facpropose() {
+  // Run the Gale-Shapley Faculty-Propose algorithm to get student assignments
+  const studentAssignments = await galeShapley_facpropose();
+
+  // Loop through the assignments and insert them into the database
+  for (const [student_id, project_id] of Object.entries(studentAssignments)) {
+    // Get the faculty_id associated with the project (assuming each project has one faculty member)
+    const facultyResult = await pool.query(
+      "SELECT faculty_id FROM projects WHERE project_id = $1", [project_id]
+    );
+
+    const faculty_id = facultyResult.rows[0]?.faculty_id || null;
+
+    // Insert the assignment into the project_allocations table
+    await pool.query("DELETE FROM project_allocations");
+    await pool.query(
+      `INSERT INTO project_allocations (student_id, project_id, faculty_id) 
+       VALUES ($1, $2, $3) 
+       ON CONFLICT (student_id, project_id) DO NOTHING`, 
+      [student_id, project_id, faculty_id]
+    );
+  }
+
+  console.log("Allocations saved successfully!");
 }
 
 
@@ -279,4 +311,9 @@ pool.connect().then((client) => {
 saveAllocations()
   .catch((err) => console.error("Error allocating projects:", err));
 
-module.exports =  pool;
+// module.exports =  pool;
+module.exports = {
+  pool,
+  saveAllocations_facpropose,
+  saveAllocations,
+};

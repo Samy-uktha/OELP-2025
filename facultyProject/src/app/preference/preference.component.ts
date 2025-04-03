@@ -50,6 +50,7 @@ ngOnInit(){
       project_id : this.project_id,
       preference_rank: index + 1
     }));
+    console.log("the preferences pushed" ,preferences);
 
     this.serv.savePreferences(preferences).subscribe(
       (response) => {
