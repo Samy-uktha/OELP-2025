@@ -215,118 +215,184 @@ async function galeShapley() {
 //   return studentAssignments;
 // }
 
-async function galeShapley_facpropose() {
-  // Get preferences from your data source.
-  const { studentPreferences, facultyPreferences } = await getPreferences();
+// async function galeShapley_facpropose() {
+//   const { studentPreferences, facultyPreferences } = await getPreferences();
 
-  // Build a lookup for each student’s sorted project preferences.
-  // Map key: student_id, value: sorted array of { project_id, rank }
-  const studentPrefMap = new Map();
-  studentPreferences.forEach(pref => {
-    const sid = Number(pref.student_id);
-    if (!studentPrefMap.has(sid)) {
-      studentPrefMap.set(sid, []);
+//   // Build student preference mapping: student_id -> ordered array of project_ids
+//   // (Assumes studentPreferences are provided in order; otherwise, sort them as needed.)
+//   let studentPrefMapping = {};
+//   studentPreferences.forEach(({ student_id, project_id }) => {
+//     if (!studentPrefMapping[student_id]) {
+//       studentPrefMapping[student_id] = [];
+//     }
+//     studentPrefMapping[student_id].push(project_id);
+//   });
+
+//   // Build faculty proposal mapping: faculty_id -> ordered array of proposals
+//   // Each proposal is an object: { student_id, project_id, rank }
+//   let facultyProposalMapping = {};
+//   facultyPreferences.forEach(({ faculty_id, student_id, project_id, rank }) => {
+//     if (!facultyProposalMapping[faculty_id]) {
+//       facultyProposalMapping[faculty_id] = [];
+//     }
+//     facultyProposalMapping[faculty_id].push({ student_id, project_id, rank });
+//   });
+
+//   // For each faculty, sort proposals by rank (ascending: best preference first)
+//   for (let faculty_id in facultyProposalMapping) {
+//     facultyProposalMapping[faculty_id].sort((a, b) => a.rank - b.rank);
+//   }
+
+//   // Initialize the set of free (unmatched) faculty members.
+//   let freeFaculties = new Set(Object.keys(facultyProposalMapping));
+
+//   // Student assignments: mapping student_id -> { faculty_id, project_id }
+//   let studentAssignments = {};
+
+//   // While there exists at least one free faculty member with remaining proposals
+//   while (freeFaculties.size > 0) {
+//     // Pick one free faculty member
+//     let faculty_id = Array.from(freeFaculties)[0];
+//     let proposals = facultyProposalMapping[faculty_id];
+
+//     // If no more proposals for this faculty, remove from free set
+//     if (!proposals || proposals.length === 0) {
+//       freeFaculties.delete(faculty_id);
+//       continue;
+//     }
+
+//     // Faculty proposes to the top student on their list
+//     let proposal = proposals.shift(); // Remove the first proposal
+//     let student_id = proposal.student_id;
+//     let project_id = proposal.project_id;
+
+//     // If the student is currently unmatched, accept the proposal
+//     if (!studentAssignments[student_id]) {
+//       studentAssignments[student_id] = { faculty_id, project_id };
+//       freeFaculties.delete(faculty_id);
+//     } else {
+//       // The student already has an assignment—compare proposals
+//       let currentAssignment = studentAssignments[student_id];
+//       let studentPrefs = studentPrefMapping[student_id] || [];
+
+//       // Determine the ranking index in the student's preference list
+//       let currentIndex = studentPrefs.indexOf(currentAssignment.project_id);
+//       let newIndex = studentPrefs.indexOf(project_id);
+
+//       // Lower index means the student prefers that project.
+//       if (newIndex !== -1 && (currentIndex === -1 || newIndex < currentIndex)) {
+//         // Student prefers the new proposal over the current assignment.
+//         studentAssignments[student_id] = { faculty_id, project_id };
+//         // The faculty who was previously matched becomes free again.
+//         freeFaculties.add(currentAssignment.faculty_id);
+//         freeFaculties.delete(faculty_id);
+//       } else {
+//         // Student rejects the new proposal.
+//         // If the proposing faculty has more proposals, they remain free;
+//         // otherwise, remove them from the free set.
+//         if (facultyProposalMapping[faculty_id].length === 0) {
+//           freeFaculties.delete(faculty_id);
+//         }
+//       }
+//     }
+//   }
+
+//   return studentAssignments;
+// }
+
+async function galeShapley_facpropose() {
+  const { studentPreferences, facultyPreferences } = await getPreferences();
+  // const projects = await getProjects(); // Each project has project_id and available_slots
+
+  const projects = (await pool.query("SELECT project_id, available_slots FROM projects")).rows;
+
+  // Build student preference mapping: student_id -> ordered array of project_ids
+  let studentPrefMapping = {};
+  studentPreferences.forEach(({ student_id, project_id }) => {
+    if (!studentPrefMapping[student_id]) {
+      studentPrefMapping[student_id] = [];
     }
-    studentPrefMap.get(sid).push({ project_id: pref.project_id, rank: pref.rank });
+    studentPrefMapping[student_id].push(project_id);
   });
-  // Sort each student’s preferences by rank (ascending)
-  for (const [sid, prefs] of studentPrefMap.entries()) {
-    prefs.sort((a, b) => a.rank - b.rank);
+
+  // Build faculty proposal mapping: faculty_id -> ordered array of proposals
+  let facultyProposalMapping = {};
+  facultyPreferences.forEach(({ faculty_id, student_id, project_id, rank }) => {
+    if (!facultyProposalMapping[faculty_id]) {
+      facultyProposalMapping[faculty_id] = [];
+    }
+    facultyProposalMapping[faculty_id].push({ student_id, project_id, rank });
+  });
+
+  // Sort proposals by rank
+  for (let faculty_id in facultyProposalMapping) {
+    facultyProposalMapping[faculty_id].sort((a, b) => a.rank - b.rank);
   }
 
-  // Build a lookup for faculty rankings.
-  // Key is `${student_id}-${project_id}` and value is the rank.
-  const facultyRankMap = new Map();
-  facultyPreferences.forEach(pref => {
-    const key = `${Number(pref.student_id)}-${pref.project_id}`;
-    facultyRankMap.set(key, pref.rank);
-  });
-
-  // Build proposals from faculty. For each student, collect all proposals.
-  // Map key: student_id, value: array of { faculty_id, project_id }
-  const proposals = new Map();
-  facultyPreferences.forEach(pref => {
-    const sid = Number(pref.student_id);
-    if (!proposals.has(sid)) {
-      proposals.set(sid, []);
-    }
-    proposals.get(sid).push({ faculty_id: pref.faculty_id, project_id: pref.project_id });
-  });
-
-  // Get available slots for each project.
-  const projectSlots = {};
-  const projectsResult = await pool.query("SELECT project_id, available_slots FROM projects");
-  projectsResult.rows.forEach(({ project_id, available_slots }) => {
+  // Build project slot tracker and allocations
+  let projectSlots = {};
+  let projectAllocations = {};
+  projects.forEach(({ project_id, available_slots }) => {
     projectSlots[project_id] = available_slots;
+    projectAllocations[project_id] = []; // stores student_ids
   });
 
-  // Object to store final student assignments: { student_id: project_id }
-  const studentAssignments = {};
+  // Student assignments: student_id -> { faculty_id, project_id }
+  let studentAssignments = {};
 
-  // Start with all students who have received proposals.
-  const unassignedStudents = new Set(proposals.keys());
+  // Initialize the set of free (unmatched) faculty members.
+  let freeFaculties = new Set(Object.keys(facultyProposalMapping));
 
-  while (unassignedStudents.size > 0) {
-    // Pick one unassigned student.
-    const student_id = unassignedStudents.values().next().value;
-    const studentProposals = proposals.get(student_id) || [];
+  // Main loop
+  while (freeFaculties.size > 0) {
+    let faculty_id = Array.from(freeFaculties)[0];
+    let proposals = facultyProposalMapping[faculty_id];
 
-    // If the student has no proposals, remove and continue.
-    if (studentProposals.length === 0) {
-      unassignedStudents.delete(student_id);
+    // If no more proposals, remove from free set
+    if (!proposals || proposals.length === 0) {
+      freeFaculties.delete(faculty_id);
       continue;
     }
 
-    // Get the student's sorted list of preferred projects.
-    const studentPrefs = studentPrefMap.get(student_id) || [];
-    // Create a set of projects that have proposed to this student.
-    const proposedProjects = new Set(studentProposals.map(p => p.project_id));
-    // From the student's preference list, pick the first project that was proposed.
-    const bestChoiceObj = studentPrefs.find(pref => proposedProjects.has(pref.project_id));
-    if (!bestChoiceObj) {
-      unassignedStudents.delete(student_id);
+    // Propose to the top student
+    let proposal = proposals.shift(); // Remove the first proposal
+    let student_id = proposal.student_id;
+    let project_id = proposal.project_id;
+
+    // Skip if project has no remaining slots
+    if (projectAllocations[project_id].length >= projectSlots[project_id]) {
       continue;
     }
-    const bestChoice = bestChoiceObj.project_id;
 
-    // If the project has available slots, assign the student.
-    if (projectSlots[bestChoice] > 0) {
-      studentAssignments[student_id] = bestChoice;
-      projectSlots[bestChoice]--;
-      unassignedStudents.delete(student_id);
+    if (!studentAssignments[student_id]) {
+      // Student is unassigned — accept the proposal
+      studentAssignments[student_id] = { faculty_id, project_id };
+      projectAllocations[project_id].push(student_id);
     } else {
-      // Project is full; find the worst-ranked student currently assigned to this project.
-      const assignedStudents = Object.entries(studentAssignments)
-        .filter(([sid, pid]) => pid === bestChoice)
-        .map(([sid]) => Number(sid));
+      // Student is already assigned — compare preferences
+      let current = studentAssignments[student_id];
+      let studentPrefs = studentPrefMapping[student_id] || [];
 
-      let worstStudent = null;
-      let worstStudentRank = -1; // Higher number is worse
+      let currentIndex = studentPrefs.indexOf(current.project_id);
+      let newIndex = studentPrefs.indexOf(project_id);
 
-      for (const sid of assignedStudents) {
-        const key = `${sid}-${bestChoice}`;
-        const rank = facultyRankMap.get(key) ?? Infinity;
-        if (rank > worstStudentRank) {
-          worstStudent = sid;
-          worstStudentRank = rank;
-        }
+      if (newIndex !== -1 && (currentIndex === -1 || newIndex < currentIndex)) {
+        // Student prefers new project — switch assignment
+        studentAssignments[student_id] = { faculty_id, project_id };
+
+        // Update project allocations
+        const oldProj = current.project_id;
+        projectAllocations[oldProj] = projectAllocations[oldProj].filter(id => id !== student_id);
+        projectAllocations[project_id].push(student_id);
+
+        // Free up the old faculty if they have more proposals
+        freeFaculties.add(current.faculty_id);
       }
+    }
 
-      // Determine the current student's ranking for the project.
-      const currentKey = `${student_id}-${bestChoice}`;
-      const currentStudentRank = facultyRankMap.get(currentKey) ?? Infinity;
-
-      // If the current student has a better (lower) rank, replace the worst student.
-      if (currentStudentRank < worstStudentRank) {
-        delete studentAssignments[worstStudent];
-        studentAssignments[student_id] = bestChoice;
-        unassignedStudents.delete(student_id);
-        // Add the replaced student back for reprocessing.
-        unassignedStudents.add(worstStudent);
-      } else {
-        // The current student cannot beat the worst student; remove from unassigned.
-        unassignedStudents.delete(student_id);
-      }
+    // Remove faculty if no more proposals
+    if (facultyProposalMapping[faculty_id].length === 0) {
+      freeFaculties.delete(faculty_id);
     }
   }
 
@@ -343,6 +409,7 @@ async function saveAllocations() {
   try {
     await client.query("BEGIN"); // Start transaction
     const allocations = await galeShapley();
+    console.log("faccc--student",allocations);
   // Clear previous allocations
   await pool.query("DELETE FROM project_allocations");
     for (const [project_id, students] of Object.entries(allocations)) {
@@ -373,30 +440,43 @@ async function saveAllocations() {
 }
 
 async function saveAllocations_facpropose() {
-  // Run the Gale-Shapley Faculty-Propose algorithm to get student assignments
-  const studentAssignments = await galeShapley_facpropose();
+  const client = await pool.connect(); // Get a client from the pool
+  try {
+    await client.query("BEGIN"); // Start transaction
 
-  // Loop through the assignments and insert them into the database
-  for (const [student_id, project_id] of Object.entries(studentAssignments)) {
-    // Get the faculty_id associated with the project (assuming each project has one faculty member)
-    const facultyResult = await pool.query(
-      "SELECT faculty_id FROM projects WHERE project_id = $1", [project_id]
-    );
+    // Run the Gale-Shapley algorithm (faculty propose version)
+    // It should return an object with keys as student_ids and values as assignments objects
+    const studentAssignments = await galeShapley_facpropose();
+    console.log("faccc---prop",studentAssignments);
 
-    const faculty_id = facultyResult.rows[0]?.faculty_id || null;
+    // Clear previous allocations (adjust table name as needed)
+    await client.query("DELETE FROM project_allocations");
 
-    // Insert the assignment into the project_allocations table
-    await pool.query("DELETE FROM project_allocations");
-    await pool.query(
-      `INSERT INTO project_allocations (student_id, project_id, faculty_id) 
-       VALUES ($1, $2, $3) 
-       ON CONFLICT (student_id, project_id) DO NOTHING`, 
-      [student_id, project_id, faculty_id]
-    );
+    // Iterate over each student assignment
+    for (const [student_id, assignment] of Object.entries(studentAssignments)) {
+      // assignment is an object with faculty_id and project_id
+      const project_id = assignment.project_id;
+      const faculty_id = assignment.faculty_id;
+
+      // Insert the allocation into the database
+      await client.query(
+        `INSERT INTO project_allocations (student_id, project_id, faculty_id) 
+         VALUES ($1, $2, $3) 
+         ON CONFLICT (student_id, project_id) DO NOTHING`,
+        [student_id, project_id, faculty_id]
+      );
+    }
+
+    await client.query("COMMIT"); // Commit transaction
+    console.log("Project allocations (faculty propose) saved successfully!");
+  } catch (err) {
+    await client.query("ROLLBACK"); // Rollback on error
+    console.error("Error in saving allocations (faculty propose):", err);
+  } finally {
+    client.release(); // Release the client back to the pool
   }
-
-  console.log("Allocations saved successfully!");
 }
+
 
 
 async function setupTriggers() {
