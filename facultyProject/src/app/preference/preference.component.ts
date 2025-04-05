@@ -28,7 +28,7 @@ ngOnInit(){
   if (this.project_id){
   this.serv.getPref(this.project_id).subscribe({
     next: (Data) => {
-      this.preferences = Data;
+      this.preferences = Data.sort((a, b) => a.rank - b.rank);
       console.log(this.preferences);
     },
     error: (error) => {
@@ -50,6 +50,7 @@ ngOnInit(){
       project_id : this.project_id,
       preference_rank: index + 1
     }));
+    console.log("the preferences pushed" ,preferences);
 
     this.serv.savePreferences(preferences).subscribe(
       (response) => {

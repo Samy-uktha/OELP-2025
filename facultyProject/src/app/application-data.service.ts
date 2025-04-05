@@ -12,6 +12,7 @@ export class ApplicationDataService {
   apiUrl_pref = 'http://localhost:5001/savepref'
   apiUrl_pref_past = 'http://localhost:5001/preferences'
   apiUrl_alloc = 'http://localhost:5001/Allocations'
+  apiUrl_alloc_facpropose = 'http://localhost:5001/Allocations_facpropose'
   constructor(private http: HttpClient) { }
 
   getApplications(id : number): Observable<application[]> {
@@ -43,6 +44,23 @@ export class ApplicationDataService {
 
     getAllocations(id : number): Observable<application[]>{
       return this.http.get<application[]>(`${this.apiUrl_alloc}/${id}`).pipe(
+        map((data: any[]) =>
+          data.map((application) => ({
+            application_id : application.application_id,
+            name : application.name,
+            cgpa : application.cgpa,
+            roll_no : application.roll_no,
+            status : application.status,
+            bio : application.bio,
+            department : application.dept_name,
+            application_date : application.application_date,
+          }) as application)
+        )
+      );
+    }
+
+    getAllocations_facpropose(id : number): Observable<application[]>{
+      return this.http.get<application[]>(`${this.apiUrl_alloc_facpropose}/${id}`).pipe(
         map((data: any[]) =>
           data.map((application) => ({
             application_id : application.application_id,

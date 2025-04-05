@@ -1,9 +1,9 @@
 const express = require("express");
 const cors = require("cors"); // Import CORS
-const pool = require("./db");
+const {pool} = require("./db");
 const multer = require("multer");
 const path = require("path");
-// const { saveAllocations } = require("./db"); 
+ const { saveAllocations, saveAllocations_facpropose } = require("./db"); 
 
 
 
@@ -566,14 +566,30 @@ app.patch('/applications/:id', async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
     console.log("Updating status:", status, "for application:", id);
+    
     try {
+        // Fetch project_id for the given application_id
+        const projQuery = await pool.query('SELECT project_id FROM project_applications WHERE application_id = $1', [id]);
+
+        if (projQuery.rows.length === 0) {
+            return res.status(404).json({ error: 'Application not found' });
+        }
+
+        const proj_id = projQuery.rows[0].project_id;
+
+        // Update application status
         await pool.query('UPDATE project_applications SET status = $1 WHERE application_id = $2', [status, id]);
+
+        // Decrement available slots in the associated project (only if status update is successful)
+        await pool.query('UPDATE projects SET available_slots = available_slots - 1 WHERE project_id = $1', [proj_id]);
+
         res.json({ success: true, message: 'Application status updated successfully' });
     } catch (error) {
         console.error('Error updating application status:', error);
         res.status(500).json({ error: 'Failed to update application status' });
     }
 });
+
 
 
 app.post('/savepref', async (req, res) => {
@@ -632,6 +648,35 @@ console.log("User ID:", user_id);
 
 app.get('/Allocations/:id', async (req,res) => {
     try {
+        await saveAllocations();
+        const id = req.params.id;
+            const studResult = await pool.query(
+                `SELECT a.Application_id, s.firstName || ' ' || s.lastName as name , s.cgpa, s.Roll_no, s.year, a.Status, 
+                a.bio, d.dept_name, a.Application_date
+                 FROM project_applications a
+                 JOIN project_allocations p ON p.student_id = a.student_id and p.project_id = a.Project_id
+                 JOIN students s ON a.student_id = s.Roll_no
+                 JOIN Department d ON s.Department_id = d.dept_id
+                 WHERE a.Project_id = $1
+                 ORDER BY a.Application_date DESC; `,[id]
+            );
+            applications = studResult.rows;
+            res.json(applications);
+            
+        }
+       
+        
+     catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+
+});
+
+app.get('/Allocations_facpropose/:id', async (req,res) => {
+    try {
+        await saveAllocations_facpropose();
         const id = req.params.id;
             const studResult = await pool.query(
                 `SELECT a.Application_id, s.firstName || ' ' || s.lastName as name , s.cgpa, s.Roll_no, s.year, a.Status, 
@@ -665,6 +710,7 @@ app.get('/preferences/:id', async(req,res) => {
                 where f.project_id = $1 and s.Roll_no = f.student_id`,[id]
             );
             pref = studResult.rows;
+            console.log(pref);
             res.json(pref);
     }
     catch(err){

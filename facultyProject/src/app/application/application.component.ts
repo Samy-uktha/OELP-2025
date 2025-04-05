@@ -89,6 +89,21 @@ export class ApplicationComponent {
 
   }
 
+  fetchAllocations_facpropose(){
+    if (!this.projectselected?.project_id) return;
+
+    this.service.getAllocations_facpropose(this.projectselected.project_id).subscribe({
+      next: (AppData) => {
+        this.allocations = AppData || [];
+        console.log('Allocations_facpropose:', this.allocations);
+      },
+      error: (error) => {
+        console.error('Error fetching allocations:', error);
+        alert('Failed to load allocations. Please try again.');
+      }
+    });
+  }
+
   selectApplication(application : application){
 this.selectedApplication = application;
 this.showApp = true;
