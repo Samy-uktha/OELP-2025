@@ -41,7 +41,8 @@ export interface projApplication {
     status: Status;
     docs: Pdf[];
     timestamp: Date;
-	preference: Number
+	preference: number;
+	facultypreference: number;
 }
 
 export interface department{
@@ -65,6 +66,13 @@ export interface project{
 }
 
 export interface preference{
+	student_id : number,
+	project_id : number,
+	rank : number
+}
+
+export interface facultypreference{
+	faculty_id : number,
 	student_id : number,
 	project_id : number,
 	rank : number
