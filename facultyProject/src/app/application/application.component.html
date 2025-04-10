@@ -31,7 +31,7 @@
 						  </thead>
 						  <tbody>
 							<tr
-							  *ngFor="let application of applications | paginate: { itemsPerPage: 5, currentPage: page }"
+							  *ngFor="let application of applications | paginate: { itemsPerPage: 10, currentPage: page }"
 							  class="table-light"
 							>
 							  <td>{{ application.application_id }}</td>
@@ -103,6 +103,54 @@
 					</div>
 					  </div>
 					</div>
+
+					<!-- Boston Mechanism Allocations -->
+<div class="card shadow-lg border-0 rounded-4 mt-4">
+	<div class="card-header bg-primary text-white text-center">
+	  <h3 class="mb-0">Boston Mechanism Allocations</h3>
+	</div>
+	<div class="card-body">
+	  <!-- <button class="btn btn-primary mb-3" (click)="fetchBostonAllocations()">
+		<i class="bi bi-check-circle"></i> Load Boston Allocations
+	  </button> -->
+	  <div *ngIf="bostonAllocations.length > 0; else noBostonAllocations">
+		<table class="table table-hover text-center align-middle">
+		  <thead class="table-light">
+			<tr>
+			  <th>ID</th>
+			  <th>Student Name</th>
+			  <th>Roll Number</th>
+			  <th>Department</th>
+			  <th>Year</th>
+			  <th>CGPA</th>
+			  <th>Match Score</th>
+			</tr>
+		  </thead>
+		  <tbody>
+			<tr *ngFor="let allocation of bostonAllocations | paginate: { itemsPerPage: 10, currentPage: page }" class="table-light">
+			  <td>{{ allocation.application_id }}</td>
+			  <td>{{ allocation.name }}</td>
+			  <td>{{ allocation.roll_no }}</td>
+			  <td>{{ allocation.department }}</td>
+			  <td>{{ allocation.year }}</td>
+			  <td>{{ allocation.cgpa }}</td>
+			  <td class="fw-bold text-success">{{ allocation.score }}</td>
+			</tr>
+		  </tbody>
+		</table>
+		<div class="card-footer bg-light text-center">
+		  <pagination-controls
+			(pageChange)="page = $event"
+			class="d-flex justify-content-center"
+		  ></pagination-controls>
+		</div>
+	  </div>
+	  <ng-template #noBostonAllocations>
+		<p class="text-secondary">No Boston Mechanism allocations available.</p>
+	  </ng-template>
+	</div>
+  </div>
+  
 				  </ng-container>
 				</div>
 			  </div>

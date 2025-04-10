@@ -28,7 +28,7 @@ export class AddProjectComponent {
     students_per_team: 0,
     prerequisites: [] as course[], // ✅ Ensure prerequisites is always initialized
     documents: [],
-    min_sem: 0,
+    min_year: 0,
     department : []
   };
 
@@ -130,7 +130,7 @@ export class AddProjectComponent {
         students_per_team: 0,
         prerequisites: [] as course[],
         documents: [],
-        min_sem: 0,
+        min_year: 0,
         department : []
       };
       this.addproj.emit(false);

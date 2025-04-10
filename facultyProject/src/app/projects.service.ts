@@ -25,7 +25,7 @@ export class ProjectsService {
           students_per_team : project.students_per_team,
           prerequisites : project.prerequisites,
           documents : project.documents,
-          min_sem : project.min_sem,
+          min_year : project.min_year,
           department : project.department
         }) as project)
       )
