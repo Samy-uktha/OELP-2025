@@ -3,7 +3,7 @@ const cors = require("cors"); // Import CORS
 const {pool} = require("./db");
 const multer = require("multer");
 const path = require("path");
- const { saveAllocations, saveAllocations_facpropose } = require("./db"); 
+ const { saveAllocations, saveAllocations_facpropose , bostonMechanism, saveAllocations_boston} = require("./db"); 
 
 
 
@@ -701,6 +701,94 @@ app.get('/Allocations_facpropose/:id', async (req,res) => {
 
 
 });
+
+app.get('/Allocations_boston', async (req, res) => {
+    try {
+      const allocations = await saveAllocations_boston();
+      await saveAllocations(allocations);
+      res.status(200).json({ message: 'Boston mechanism allocations saved.', allocations });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  app.get('/Allocations_boston/:id', async (req,res) => {
+    try {
+        await saveAllocations_boston();
+        console.log("boston req",req.params)
+        const id = req.params.id;
+            const studResult = await pool.query(
+                `SELECT a.Application_id, s.firstName || ' ' || s.lastName as name , s.cgpa, s.Roll_no, s.year, a.Status, 
+                a.bio, d.dept_name, a.Application_date, ba.score AS match_score, br.rank AS rank
+                 FROM project_applications a
+                 JOIN students s ON a.student_id = s.Roll_no
+                 JOIN Department d ON s.Department_id = d.dept_id
+                 LEFT JOIN boston_allocations ba ON a.student_id = ba.student_id AND a.project_id = ba.Project_id
+                 LEFT JOIN boston_ranks br ON a.student_id = br.student_id AND a.project_id = br.project_id
+
+                 WHERE a.Project_id = $1
+                 ORDER BY br.rank ASC NULLS LAST, a.Application_date DESC;`,[id]
+            );
+            applications = studResult.rows;
+            res.json(applications);
+            console.log(applications)
+        }
+       
+        
+     catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+
+});
+
+// Route to trigger and return Boston mechanism allocations
+// app.get('/Allocations_boston', async (req, res) => {
+//     try {
+//       await saveAllocations_boston(); // Triggers Boston mechanism and stores results
+//       res.status(200).json({ message: 'Boston mechanism allocations saved.' });
+//     } catch (err) {
+//       console.error(err);
+//       res.status(500).json({ error: 'Internal Server Error' });
+//     }
+//   });
+  
+//   // Route to fetch allocations for a specific project
+//   app.get('/Allocations_boston/:id', async (req, res) => {
+//     try {
+//       const id = req.params.id;
+  
+//       const studResult = await pool.query(
+//         `SELECT 
+//             a.Application_id, 
+//             s.firstName || ' ' || s.lastName AS name,
+//             s.cgpa, 
+//             s.Roll_no, 
+//             s.year, 
+//             a.Status, 
+//             a.bio, 
+//             d.dept_name, 
+//             a.Application_date,
+//             b.score
+//           FROM project_applications a
+//           JOIN boston_allocations b ON b.student_id = a.student_id AND b.project_id = a.Project_id
+//           JOIN students s ON a.student_id = s.Roll_no
+//           JOIN Department d ON s.Department_id = d.dept_id
+//           WHERE a.Project_id = $1
+//           ORDER BY b.score DESC;`, // sort by score if needed
+//         [id]
+//       );
+  
+//       res.json(studResult.rows);
+//     } catch (err) {
+//       console.error(err);
+//       res.status(500).json({ error: 'Internal Server Error' });
+//     }
+//   });
+  
+  
+
 
 app.get('/preferences/:id', async(req,res) => {
     try{
