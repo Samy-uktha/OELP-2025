@@ -13,6 +13,7 @@ export class ApplicationDataService {
   apiUrl_pref_past = 'http://localhost:5001/preferences'
   apiUrl_alloc = 'http://localhost:5001/Allocations'
   apiUrl_alloc_facpropose = 'http://localhost:5001/Allocations_facpropose'
+  apiUrl_alloc_boston = 'http://localhost:5001/Allocations_boston';
   apiUrl_alloc_SPAlecturer = 'http://localhost:5001/Allocations_SPAlecturer'
   apiUrl_alloc_SPAstudent = 'http://localhost:5001/Allocations_SPAstudent'
   constructor(private http: HttpClient) { }
@@ -77,6 +78,26 @@ export class ApplicationDataService {
         )
       );
     }
+
+    getBostonAllocations(id: number): Observable<any[]> {
+      return this.http.get<any[]>(`${this.apiUrl_alloc_boston}/${id}`).pipe(
+        map((data: any[]) =>
+          data.map((application) => ({
+            application_id: application.application_id,
+            name: application.name,
+            roll_no: application.roll_no,
+            department: application.dept_name,
+            year: application.year,
+            cgpa: application.cgpa,
+            status : application.status,
+            bio : application.bio,
+            application_date : application.application_date,
+            score: application.match_score  // Backend should return this
+          }) as application)
+        )
+      );
+    }
+
 
     getAllocations_SPAlecturer(id : number): Observable<application[]>{
       return this.http.get<application[]>(`${this.apiUrl_alloc_SPAlecturer}/${id}`).pipe(

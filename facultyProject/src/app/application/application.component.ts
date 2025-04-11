@@ -23,6 +23,7 @@ export class ApplicationComponent {
   pref : boolean = false;
   preferenceOptions: number[] = [];
   page: number = 1;
+  bostonAllocations: any[] = [];
 
   isUpdating = false;
 
@@ -35,6 +36,7 @@ export class ApplicationComponent {
       if (this.projectselected?.project_id) {
         this.fetchApplications();
         this.fetchAllocations();
+        this.fetchBostonAllocations();
       }
     }, 100); 
   }
@@ -44,6 +46,7 @@ export class ApplicationComponent {
     if (changes['projectselected'] && this.projectselected?.project_id) {
       this.fetchApplications();
       this.fetchAllocations();
+      this.fetchBostonAllocations();
     }
   },100);
   }
@@ -81,6 +84,21 @@ export class ApplicationComponent {
       error: (error) => {
         console.error('Error fetching allocations:', error);
         alert('Failed to load allocations. Please try again.');
+      }
+    });
+  }
+
+  fetchBostonAllocations() {
+    if (!this.projectselected?.project_id) return;
+  
+    this.service.getBostonAllocations(this.projectselected.project_id).subscribe({
+      next: (AppData) => {
+        this.bostonAllocations = AppData || [];
+        console.log('Boston Allocations:', this.bostonAllocations);
+      },
+      error: (error) => {
+        console.error('Error fetching Boston allocations:', error);
+        alert('Failed to load Boston Mechanism allocations. Please try again.');
       }
     });
   }

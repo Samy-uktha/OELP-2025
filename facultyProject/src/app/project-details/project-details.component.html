@@ -26,8 +26,8 @@
 				<p class="mb-2"><strong>Minimum CGPA required:</strong></p>
 				<p class="text-secondary">{{ project.min_cgpa }}</p>
   
-				<p class="mb-2"><strong>Minimum Semester:</strong></p>
-				<p class="text-secondary">{{ project.min_sem }}</p>
+				<p class="mb-2"><strong>Minimum year:</strong></p>
+				<p class="text-secondary">{{ project.min_year }}</p>
   
 				<!-- Departments -->
 				<div class="mb-3">
@@ -72,8 +72,8 @@
 				<label><strong>Minimum CGPA:</strong></label>
 				<input type="number" class="form-control mb-2" [(ngModel)]="editableProject.min_cgpa" min="1" max="10">
   
-				<label><strong>Minimum Semester:</strong></label>
-				<input type="number" class="form-control mb-2" [(ngModel)]="editableProject.min_sem" min="1" max="20">
+				<label><strong>Minimum year:</strong></label>
+				<input type="number" class="form-control mb-2" [(ngModel)]="editableProject.min_year" min="1" max="20">
   
 				<!-- Prerequisites Search -->
 				<h5 class="mt-3">Prerequisites</h5>

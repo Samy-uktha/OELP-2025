@@ -39,7 +39,7 @@ export interface project{
 	students_per_team : number,
 	prerequisites? : course[],
 	documents? : Doc[],
-	min_sem : number,
+	min_year : number,
 	department? : department[]
 
 }
@@ -55,8 +55,8 @@ export interface application{
 	application_date : Date,
 	bio : string,
 	documents? : Doc[],
-	preference? : number
-
+	preference? : number,
+	score: number
 }
 
 export interface preference{
