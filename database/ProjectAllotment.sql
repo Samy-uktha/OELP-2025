@@ -407,3 +407,14 @@ JOIN
     students s ON pp.student_id = s.Roll_no
 JOIN 
     projects p ON pp.project_id = p.Project_id;
+
+create or replace function get_available_slots(pproject text)
+returns int as $$ 
+declare 
+capacity int;
+begin 
+select available_slots into capacity
+from projects where Title = pproject;
+return capacity;
+end;
+$$ LANGUAGE plpgsql;
