@@ -382,3 +382,28 @@ CREATE TABLE boston_ranks (
     CONSTRAINT fk_project FOREIGN KEY (project_id) REFERENCES projects(Project_id) ON DELETE CASCADE,
     CONSTRAINT check_rank CHECK (rank > 0)
 );
+
+
+CREATE OR REPLACE VIEW student_project_preferences AS
+SELECT 
+    s.firstName || s.lastName AS student_name,
+    p.Title AS project_name,
+    sp.rank AS preference_rank
+FROM 
+    student_preferences sp
+JOIN 
+    students s ON sp.student_id = s.Roll_no
+JOIN 
+    projects p ON sp.project_id = p.Project_id;
+
+CREATE OR REPLACE VIEW project_student_preferences AS
+SELECT 
+    s.firstName || s.lastName AS student_name,
+    p.Title AS project_name,
+    pp.rank AS preference_rank
+FROM 
+    faculty_preferences pp
+JOIN 
+    students s ON pp.student_id = s.Roll_no
+JOIN 
+    projects p ON pp.project_id = p.Project_id;

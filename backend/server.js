@@ -910,29 +910,60 @@ app.get('/getstudentpref/:id', async (req, res) => {
     }
 });
 
+app.get('/getStudentpreferences_Visualiser', async (req, res) => {
+    try {
+        // console.log(req.params.id);
+        // const studentId = req.params.id;
+        const result = await pool.query(
+            `select * from student_project_preferences`
+        );  
+        res.json(result.rows);
+    } catch (err){
+        console.error("Error fetching student preferences:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+} );
+
+app.get('/getProjectpreferences_Visualiser', async (req, res) => {
+    try {
+        // console.log(req.params.id);
+        // const studentId = req.params.id;
+        const result = await pool.query(
+            `select * from project_student_preferences`
+        );  
+        res.json(result.rows);
+    } catch (err){
+        console.error("Error fetching project preferences:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+} );
+
+app.get('/getAvailableSlots/:title', async (req, res) => {
+    try {
+      const title = req.params.title; // ✅ Use params since it's in the URL path
+  
+      const result = await pool.query(
+        `SELECT get_available_slots($1) as available_slots`, // ✅ function should accept title
+        [title] // ✅ pass parameter correctly
+      );
+  
+      const availableSlots = result.rows[0]?.available_slots;
+  
+      if (availableSlots === null) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+  
+      res.json(availableSlots );
+  
+    } catch (err) {
+      console.error("Error fetching available slots:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
+  
+
 
 const server = http.createServer(app);
-// const io = socketIO(server, {
-//   cors: {
-//     origin: "*", // Allow all origins (or restrict as needed)
-//     methods: ["GET", "POST"]
-//   }
-// });
-
-// io.on("connection", (socket) => {
-//     console.log("Client connected:", socket.id);
-  
-//     // Optionally, send an initial message
-//     socket.emit("update", { message: "Welcome! Real-time updates will appear here." });
-  
-//     socket.on("disconnect", () => {
-//       console.log("Client disconnected:", socket.id);
-//     });
-//   });
-
-//   setSocketIO(io);
-
-
 
 // Start server
 // app.listen(5001, () => console.log("Server running on port 5001"));
@@ -940,4 +971,4 @@ server.listen(5001, () => {
     console.log(`Server running on port 5001`);
 });
 
-// module.exports = {  io };
+
