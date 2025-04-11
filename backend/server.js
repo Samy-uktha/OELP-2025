@@ -1,10 +1,12 @@
 const express = require("express");
 const cors = require("cors"); // Import CORS
 const {pool} = require("./db");
+const http = require('http');
+
 
 const multer = require("multer");
 const path = require("path");
- const { saveAllocations, saveAllocations_facpropose , bostonMechanism, saveAllocations_boston} = require("./db"); 
+ const { saveAllocations, saveAllocations_facpropose , bostonMechanism, saveAllocations_boston, saveAllocations_SPAlecture, saveAllocations_SPAstudent} = require("./db"); 
 
 
 

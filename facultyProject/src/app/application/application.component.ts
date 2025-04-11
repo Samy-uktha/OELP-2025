@@ -24,6 +24,7 @@ export class ApplicationComponent {
   preferenceOptions: number[] = [];
   page: number = 1;
   bostonAllocations: any[] = [];
+  isBoston : boolean = false;
 
   isUpdating = false;
 
@@ -36,7 +37,7 @@ export class ApplicationComponent {
       if (this.projectselected?.project_id) {
         this.fetchApplications();
         this.fetchAllocations();
-        this.fetchBostonAllocations();
+        // this.fetchBostonAllocations();
       }
     }, 100); 
   }
@@ -46,12 +47,13 @@ export class ApplicationComponent {
     if (changes['projectselected'] && this.projectselected?.project_id) {
       this.fetchApplications();
       this.fetchAllocations();
-      this.fetchBostonAllocations();
+      // this.fetchBostonAllocations();s
     }
   },100);
   }
 
   fetchApplications() {
+    this.isBoston = false;
     if (!this.projectselected?.project_id) {
       console.error('Project not selected.');
       alert('Please select a project first.');
@@ -73,6 +75,7 @@ export class ApplicationComponent {
   
 
   fetchAllocations(){
+    this.isBoston = false;
     this.currentAllocationType = 'Student Preferred, Gale Shapley';
     if (!this.projectselected?.project_id) return;
 
@@ -89,6 +92,8 @@ export class ApplicationComponent {
   }
 
   fetchBostonAllocations() {
+    this.isBoston = true;
+    this.currentAllocationType = "Boston";
     if (!this.projectselected?.project_id) return;
   
     this.service.getBostonAllocations(this.projectselected.project_id).subscribe({
@@ -112,6 +117,7 @@ export class ApplicationComponent {
   }
 
   fetchAllocations_facpropose(){
+    this.isBoston = false;
     this.currentAllocationType = 'Faculty Preferred, Gale Shapley';
     if (!this.projectselected?.project_id) return;
 
@@ -128,6 +134,7 @@ export class ApplicationComponent {
   }
 
   fetchAllocations_SPAlecturer(){
+    this.isBoston = false;
     this.currentAllocationType = 'SPA lecturer allocations';
     if (!this.projectselected?.project_id) return;
 
@@ -144,6 +151,7 @@ export class ApplicationComponent {
   }
 
   fetchAllocations_SPAstudent(){
+    this.isBoston = false;
     this.currentAllocationType = 'SPA student allocations';
     if (!this.projectselected?.project_id) return;
 

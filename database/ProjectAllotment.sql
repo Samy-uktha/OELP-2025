@@ -358,3 +358,27 @@ CREATE OR REPLACE FUNCTION trigger_gale_shapley()
     CREATE TRIGGER trigger_faculty_preferences
     AFTER INSERT OR UPDATE OR DELETE ON faculty_preferences
     FOR EACH STATEMENT EXECUTE FUNCTION trigger_gale_shapley();
+
+
+CREATE TABLE boston_allocations(
+    student_id INTEGER,
+    project_id INTEGER,
+    faculty_id INTEGER,
+    allocation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (student_id, project_id),
+    CONSTRAINT fk_student FOREIGN KEY (student_id) REFERENCES students(Roll_no) ON DELETE CASCADE,
+    CONSTRAINT fk_project FOREIGN KEY (project_id) REFERENCES projects(Project_id) ON DELETE CASCADE,
+    CONSTRAINT fk_faculty FOREIGN KEY (faculty_id) REFERENCES faculty(faculty_id) ON DELETE CASCADE
+);
+ALTER TABLE boston_allocations
+ADD COLUMN score NUMERIC;
+
+CREATE TABLE boston_ranks (
+    student_id INTEGER,
+    project_id INTEGER,
+    rank INTEGER NOT NULL,
+    PRIMARY KEY (student_id, project_id),
+    CONSTRAINT fk_student FOREIGN KEY (student_id) REFERENCES students(Roll_no) ON DELETE CASCADE,
+    CONSTRAINT fk_project FOREIGN KEY (project_id) REFERENCES projects(Project_id) ON DELETE CASCADE,
+    CONSTRAINT check_rank CHECK (rank > 0)
+);

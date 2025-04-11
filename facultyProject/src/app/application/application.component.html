@@ -62,7 +62,7 @@
 				  <ng-container>
 					<div class="card shadow-lg border-0 rounded-4 mt-4">
 					  <div class="card-header bg-primary text-white text-center">
-						<h3 class="mb-0">Gale Shapley Allocations</h3>
+						<h3 class="mb-0">Allocations</h3>
 					  </div>
 					  <div class="card-body">
 						<div class="dropdown mb-3 text-center">
@@ -90,16 +90,22 @@
 								  <i class="bi bi-person-heart"></i> SPA student
 								</button>
 							  </li>
+							  <li>
+								<button class="dropdown-item" (click)="fetchBostonAllocations()">
+								  <i class="bi bi-person-heart"></i> Boston Allocations
+								</button>
+							  </li>
 							</ul>
 						  </div>
 						  
-						  <div *ngIf="allocations.length > 0;">
+						  <div *ngIf=" (allocations.length > 0);" >
+							
 							<div *ngIf="currentAllocationType" class="alert alert-info text-center mb-3">
 								Showing: <strong>{{ currentAllocationType }} Allocations</strong>
 							  </div>
 
-							  
-						<table class="table table-hover text-center align-middle">
+						<div *ngIf="!isBoston">  	  
+						<table  class="table table-hover text-center align-middle">
 						  <thead class="table-light">
 							<tr>
 							  <th>ID</th>
@@ -124,6 +130,7 @@
 							class="d-flex justify-content-center"
 						  ></pagination-controls>
 						</div>
+					</div>	
 					</div>
 					<div *ngIf="allocations.length <= 0">
 						<div *ngIf="currentAllocationType" class="alert alert-info  text-center mb-3">
@@ -133,14 +140,15 @@
 							 <strong> Sorry! No allocations found</strong>
 						  </div>
 					</div>
-					  </div>
-					</div>
+					 
+					
+					<!-- <div *ngIf="isBoston"></div> -->
 
 					<!-- Boston Mechanism Allocations -->
-<div class="card shadow-lg border-0 rounded-4 mt-4">
-	<div class="card-header bg-primary text-white text-center">
+<div *ngIf="isBoston" class="card shadow-lg border-0 rounded-4 mt-4">
+	<!-- <div class="card-header bg-primary text-white text-center">
 	  <h3 class="mb-0">Boston Mechanism Allocations</h3>
-	</div>
+	</div> -->
 	<div class="card-body">
 	  <!-- <button class="btn btn-primary mb-3" (click)="fetchBostonAllocations()">
 		<i class="bi bi-check-circle"></i> Load Boston Allocations
@@ -182,6 +190,8 @@
 	  </ng-template>
 	</div>
   </div>
+</div>
+</div>
   
 				  </ng-container>
 				</ng-container>
