@@ -1,9 +1,15 @@
 const express = require("express");
 const cors = require("cors"); // Import CORS
 const {pool} = require("./db");
+
 const multer = require("multer");
 const path = require("path");
- const { saveAllocations, saveAllocations_facpropose } = require("./db"); 
+
+
+const http = require("http");
+// const socketIO = require("socket.io");
+
+ const { saveAllocations, saveAllocations_facpropose, saveAllocations_SPAlecture, saveAllocations_SPAstudent } = require("./db"); 
 
 
 
@@ -702,6 +708,62 @@ app.get('/Allocations_facpropose/:id', async (req,res) => {
 
 });
 
+app.get('/Allocations_SPAlecturer/:id', async (req,res) => {
+    try {
+        await saveAllocations_SPAlecture();
+        const id = req.params.id;
+            const studResult = await pool.query(
+                `SELECT a.Application_id, s.firstName || ' ' || s.lastName as name , s.cgpa, s.Roll_no, s.year, a.Status, 
+                a.bio, d.dept_name, a.Application_date
+                 FROM project_applications a
+                 JOIN project_allocations p ON p.student_id = a.student_id and p.project_id = a.Project_id
+                 JOIN students s ON a.student_id = s.Roll_no
+                 JOIN Department d ON s.Department_id = d.dept_id
+                 WHERE a.Project_id = $1
+                 ORDER BY a.Application_date DESC; `,[id]
+            );
+            applications = studResult.rows;
+            res.json(applications);
+            
+        }
+       
+        
+     catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+
+});
+
+app.get('/Allocations_SPAstudent/:id', async (req,res) => {
+    try {
+        await saveAllocations_SPAstudent();
+        const id = req.params.id;
+            const studResult = await pool.query(
+                `SELECT a.Application_id, s.firstName || ' ' || s.lastName as name , s.cgpa, s.Roll_no, s.year, a.Status, 
+                a.bio, d.dept_name, a.Application_date
+                 FROM project_applications a
+                 JOIN project_allocations p ON p.student_id = a.student_id and p.project_id = a.Project_id
+                 JOIN students s ON a.student_id = s.Roll_no
+                 JOIN Department d ON s.Department_id = d.dept_id
+                 WHERE a.Project_id = $1
+                 ORDER BY a.Application_date DESC; `,[id]
+            );
+            applications = studResult.rows;
+            res.json(applications);
+            
+        }
+       
+        
+     catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+
+});
+
 app.get('/preferences/:id', async(req,res) => {
     try{
         const id = req.params.id;
@@ -764,5 +826,33 @@ app.get('/getstudentpref/:id', async (req, res) => {
 });
 
 
+const server = http.createServer(app);
+// const io = socketIO(server, {
+//   cors: {
+//     origin: "*", // Allow all origins (or restrict as needed)
+//     methods: ["GET", "POST"]
+//   }
+// });
+
+// io.on("connection", (socket) => {
+//     console.log("Client connected:", socket.id);
+  
+//     // Optionally, send an initial message
+//     socket.emit("update", { message: "Welcome! Real-time updates will appear here." });
+  
+//     socket.on("disconnect", () => {
+//       console.log("Client disconnected:", socket.id);
+//     });
+//   });
+
+//   setSocketIO(io);
+
+
+
 // Start server
-app.listen(5001, () => console.log("Server running on port 5001"));
+// app.listen(5001, () => console.log("Server running on port 5001"));
+server.listen(5001, () => {
+    console.log(`Server running on port 5001`);
+});
+
+// module.exports = {  io };

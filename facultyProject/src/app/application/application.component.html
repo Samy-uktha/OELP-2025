@@ -56,10 +56,7 @@
 						</div>
 					  </div>
 					</div>
-				  </ng-container>
-				  <ng-template #noApplications>
-					<p class="text-secondary">No applications yet!</p>
-				  </ng-template>
+				 
 			  
 				  <!-- Allocations Section -->
 				  <ng-container>
@@ -68,13 +65,40 @@
 						<h3 class="mb-0">Gale Shapley Allocations</h3>
 					  </div>
 					  <div class="card-body">
-						<button class="btn btn-primary me-2" (click)="fetchAllocations_facpropose()" >
-							<i class="bi bi-check-circle"></i>Faculty preference prioritised allocations
-						  </button>
-						  <button class="btn btn-primary me-2" (click)="fetchAllocations()" >
-							<i class="bi bi-check-circle"></i>Student preference prioritised allocations
-						  </button>
-						  <div *ngIf="allocations.length > 0">
+						<div class="dropdown mb-3 text-center">
+							<button class="btn btn-primary dropdown-toggle" type="button" id="allocationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+							  <i class="bi bi-filter-circle"></i> Select Allocation Preference
+							</button>
+							<ul class="dropdown-menu text-center" aria-labelledby="allocationDropdown">
+							  <li>
+								<button class="dropdown-item" (click)="fetchAllocations_facpropose()">
+								  <i class="bi bi-person-check"></i> Faculty Preferred
+								</button>
+							  </li>
+							  <li>
+								<button class="dropdown-item" (click)="fetchAllocations()">
+								  <i class="bi bi-person-heart"></i> Student Preferred
+								</button>
+							  </li>
+							  <li>
+								<button class="dropdown-item" (click)="fetchAllocations_SPAlecturer()">
+								  <i class="bi bi-person-heart"></i> SPA lecturer
+								</button>
+							  </li>
+							  <li>
+								<button class="dropdown-item" (click)="fetchAllocations_SPAstudent()">
+								  <i class="bi bi-person-heart"></i> SPA student
+								</button>
+							  </li>
+							</ul>
+						  </div>
+						  
+						  <div *ngIf="allocations.length > 0;">
+							<div *ngIf="currentAllocationType" class="alert alert-info text-center mb-3">
+								Showing: <strong>{{ currentAllocationType }} Allocations</strong>
+							  </div>
+
+							  
 						<table class="table table-hover text-center align-middle">
 						  <thead class="table-light">
 							<tr>
@@ -101,9 +125,21 @@
 						  ></pagination-controls>
 						</div>
 					</div>
+					<div *ngIf="allocations.length <= 0">
+						<div *ngIf="currentAllocationType" class="alert alert-info  text-center mb-3">
+							Showing: <strong>{{ currentAllocationType }} Allocations</strong>
+						  </div>
+						  <div *ngIf="currentAllocationType" class="alert alert-info text-center mb-3">
+							 <strong> Sorry! No allocations found</strong>
+						  </div>
+					</div>
 					  </div>
 					</div>
 				  </ng-container>
+				</ng-container>
+				<ng-template #noApplications>
+				  <p class="text-secondary">No applications yet!</p>
+				</ng-template>
 				</div>
 			  </div>
 			  

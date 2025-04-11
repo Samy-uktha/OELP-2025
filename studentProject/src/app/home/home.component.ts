@@ -335,6 +335,7 @@ export class HomeComponent {
         );
         if (appl) {
           console.log('appl --- ', appl);
+          this.viewApplication(project.title);
           this.application = appl;
           this.applicationsData[project.project_id].bio = appl?.bio;
           this.applicationsData[project.project_id].files = appl?.docs;
@@ -389,6 +390,8 @@ export class HomeComponent {
           this.applicationsData[project.project_id].files = appl.docs;
         }
       }
+
+      console.log("appl", this.application);
 
       // Fetch faculty-assigned rank for this project
       this.appservice.getStudentRank(this.student.rollNumber, project.project_id).subscribe({

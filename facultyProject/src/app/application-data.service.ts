@@ -13,6 +13,8 @@ export class ApplicationDataService {
   apiUrl_pref_past = 'http://localhost:5001/preferences'
   apiUrl_alloc = 'http://localhost:5001/Allocations'
   apiUrl_alloc_facpropose = 'http://localhost:5001/Allocations_facpropose'
+  apiUrl_alloc_SPAlecturer = 'http://localhost:5001/Allocations_SPAlecturer'
+  apiUrl_alloc_SPAstudent = 'http://localhost:5001/Allocations_SPAstudent'
   constructor(private http: HttpClient) { }
 
   getApplications(id : number): Observable<application[]> {
@@ -75,6 +77,41 @@ export class ApplicationDataService {
         )
       );
     }
+
+    getAllocations_SPAlecturer(id : number): Observable<application[]>{
+      return this.http.get<application[]>(`${this.apiUrl_alloc_SPAlecturer}/${id}`).pipe(
+        map((data: any[]) =>
+          data.map((application) => ({
+            application_id : application.application_id,
+            name : application.name,
+            cgpa : application.cgpa,
+            roll_no : application.roll_no,
+            status : application.status,
+            bio : application.bio,
+            department : application.dept_name,
+            application_date : application.application_date,
+          }) as application)
+        )
+      );
+    }
+
+    getAllocations_SPAstudent(id : number): Observable<application[]>{
+      return this.http.get<application[]>(`${this.apiUrl_alloc_SPAlecturer}/${id}`).pipe(
+        map((data: any[]) =>
+          data.map((application) => ({
+            application_id : application.application_id,
+            name : application.name,
+            cgpa : application.cgpa,
+            roll_no : application.roll_no,
+            status : application.status,
+            bio : application.bio,
+            department : application.dept_name,
+            application_date : application.application_date,
+          }) as application)
+        )
+      );
+    }
+    
 getPref(id : number):Observable<preference[]>{
   return this.http.get<preference[]>(`${this.apiUrl_pref_past}/${id}`).pipe(
     map((data: any[]) =>

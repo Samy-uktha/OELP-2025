@@ -1,5 +1,8 @@
 require("dotenv").config();
 const { Pool } = require("pg");
+// const { io } = require('./server'); 
+
+
 
 const pool = new Pool({
   user: 'postgres', // Replace with your actual username
@@ -44,7 +47,8 @@ async function getPreferences() {
 // Gale-Shapley Algorithm for Project Allocation
 async function galeShapley() {
   const { studentPreferences, facultyPreferences } = await getPreferences();
-
+  console.log ("Preferences - students", studentPreferences);
+  console.log ("Preferences - faculty", facultyPreferences);
   let studentProposals = {}; // Students' project preferences
   let projectSlots = {}; // Available slots for each project
   let projectAllocations = {}; // Tracks project allocations
@@ -314,7 +318,7 @@ async function galeShapley_facpropose() {
     }
     studentPrefMapping[student_id].push(project_id);
   });
-
+  console.log("pref mapping",studentPrefMapping);
   // Build faculty proposal mapping: faculty_id -> ordered array of proposals
   let facultyProposalMapping = {};
   facultyPreferences.forEach(({ faculty_id, student_id, project_id, rank }) => {
@@ -323,11 +327,13 @@ async function galeShapley_facpropose() {
     }
     facultyProposalMapping[faculty_id].push({ student_id, project_id, rank });
   });
+  
 
   // Sort proposals by rank
   for (let faculty_id in facultyProposalMapping) {
     facultyProposalMapping[faculty_id].sort((a, b) => a.rank - b.rank);
   }
+  console.log("pref mapping - faculty",facultyProposalMapping);
 
   // Build project slot tracker and allocations
   let projectSlots = {};
@@ -430,6 +436,7 @@ async function saveAllocations() {
     }
 
     await client.query("COMMIT"); // Commit transaction
+    // await SPA_student();
     console.log("Project allocations saved successfully!");
   } catch (err) {
     await client.query("ROLLBACK"); // Rollback on error
@@ -448,6 +455,8 @@ async function saveAllocations_facpropose() {
     // It should return an object with keys as student_ids and values as assignments objects
     const studentAssignments = await galeShapley_facpropose();
     console.log("faccc---prop",studentAssignments);
+    // const stud2 = await SPA_lecturer();
+    // console.log("SPA lecturer", stud2);
 
     // Clear previous allocations (adjust table name as needed)
     await client.query("DELETE FROM project_allocations");
@@ -458,6 +467,39 @@ async function saveAllocations_facpropose() {
       const project_id = assignment.project_id;
       const faculty_id = assignment.faculty_id;
 
+      // Insert the allocation into the database
+      await client.query(
+        `INSERT INTO project_allocations (student_id, project_id, faculty_id) 
+         VALUES ($1, $2, $3) 
+         ON CONFLICT (student_id, project_id) DO NOTHING`,
+        [student_id, project_id, faculty_id]
+      );
+    }
+
+    await client.query("COMMIT"); // Commit transaction
+    console.log("Project allocations (faculty propose) saved successfully!");
+  } catch (err) {
+    await client.query("ROLLBACK"); // Rollback on error
+    console.error("Error in saving allocations (faculty propose):", err);
+  } finally {
+    client.release(); // Release the client back to the pool
+  }
+}
+
+async function saveAllocations_SPAlecture() {
+  const client = await pool.connect(); 
+  try {
+    await client.query("BEGIN"); 
+    const studentAssignments = await SPA_lecturer();
+    console.log("SPA lecturer allocations",studentAssignments);
+    
+    await client.query("DELETE FROM project_allocations");
+    console.log("ass :", Object.entries(studentAssignments));
+    // Iterate over each student assignment
+    for (const [student_id, project_id] of Object.entries(studentAssignments)) {
+      // const project_id = assignment.project_id;
+      const {faculty_id} = (await client.query("SELECT faculty_id from projects where project_id = $1",[project_id])).rows[0];
+      console.log("faculty_id",faculty_id);
       // Insert the allocation into the database
       await client.query(
         `INSERT INTO project_allocations (student_id, project_id, faculty_id) 
@@ -515,6 +557,281 @@ pool.connect().then((client) => {
   });
 });
 
+async function SPA_lecturer() {
+  const { studentPreferences, facultyPreferences } = await getPreferences();
+  const projects = await pool.query("SELECT project_id, faculty_id, available_slots FROM projects");
+
+  let studentPrefMapping = {};
+  studentPreferences.forEach(({ student_id, project_id }) => {
+    if (!studentPrefMapping[student_id]) {
+      studentPrefMapping[student_id] = [];
+    }
+    studentPrefMapping[student_id].push(Number(project_id));
+  });
+  console.log("SPA - Student preference mapping:", studentPrefMapping);
+  // io.emit()
+
+  let facPrefMapping = {};
+  facultyPreferences.forEach(({ project_id, student_id, rank }) => {
+    if (!facPrefMapping[project_id]) {
+      facPrefMapping[project_id] = [];
+    }
+    facPrefMapping[project_id].push({ student_id: Number(student_id), rank });
+  });
+
+  Object.keys(facPrefMapping).forEach(pid => {
+    facPrefMapping[pid].sort((a, b) => a.rank - b.rank);
+    facPrefMapping[pid] = facPrefMapping[pid].map(item => item.student_id);
+  });
+  console.log("SPA - Faculty (per project) preference mapping:", facPrefMapping);
+
+
+  let projectData = {};
+  let studentAssignments = {};
+
+  projects.rows.forEach(({ project_id, faculty_id, available_slots }) => {
+    projectData[project_id] = {
+      faculty_id,
+      capacity: available_slots,
+      assigned: []
+    };
+  });
+  console.log("SPA - Project data:", projectData);
+
+
+  let freeProjects = new Set(Object.keys(facPrefMapping));
+
+  // if there are free projects
+  while (freeProjects.size > 0) {
+    console.log("Free projects:", Array.from(freeProjects));
+
+// free proj at that instance
+    for (let project_id of Array.from(freeProjects)) {
+      let project = projectData[project_id];
+      // if the proj is full remove from free projects
+      if (project.assigned.length >= project.capacity) {
+        freeProjects.delete(project_id);
+        continue;
+      }
+
+// pref list for each project
+      let prefList = facPrefMapping[project_id];
+      if (!prefList || prefList.length === 0) {
+        freeProjects.delete(project_id);
+        console.log(`Project ${project_id} has no more students to propose to. Removing from freeProjects.`);
+        continue;
+      }
+
+      // if not using shift(), the project gets proposed to that student again and again
+      // first preferred student is selected then the other .. and so on..
+      let student_id = prefList.shift();
+      console.log(`Project ${project_id} proposes to student ${student_id}`);
+
+      // if in the preference mapping of the student, the project is not present, the student is skipped
+      if (!studentPrefMapping[student_id] || !studentPrefMapping[student_id].includes(Number(project_id))) {
+        console.log(`Student ${student_id} does not have project ${project_id} in their preferences. Proposal rejected.`);
+        continue;
+      }
+
+      // if the student is preferred, 
+      // the already assigned project to it is removed and this project is assigned and the 
+      // old project is added back to free projects, 
+      // and the student is removed from the assigned of old project
+      if (studentAssignments[student_id] !== undefined) { 
+        let oldProject = studentAssignments[student_id];
+        projectData[oldProject].assigned = projectData[oldProject].assigned.filter(s => s !== student_id);
+        freeProjects.add(String(oldProject));
+        console.log(`Student ${student_id} was reassigned from project ${oldProject} to project ${project_id}.`);
+      }
+
+      // the student is added to assigned of the current project, 
+      // and this is added to assignments
+      project.assigned.push(student_id);
+      studentAssignments[student_id] = Number(project_id);
+      
+      // all the projects after the project in the preference of that student is removed
+      let idx = studentPrefMapping[student_id].indexOf(Number(project_id));
+      if (idx !== -1) {
+        let removed = studentPrefMapping[student_id].splice(idx + 1);
+        console.log(`Removed successors from student ${student_id}'s preference list after assignment to project ${project_id}:`, removed);
+      }
+      
+      console.log(`Project ${project_id} (Faculty ${project.faculty_id}) assigned student ${student_id}`);
+
+      // if the assigned lists length = capacity, the project is deleted from the freeprojects
+      if (project.assigned.length >= project.capacity) {
+        freeProjects.delete(project_id);
+        console.log(`Project ${project_id} is now full. Removing from freeProjects.`);
+      }
+    }
+  }
+  
+  console.log("Final student assignments:", studentAssignments);
+  return studentAssignments;
+}
+
+
+async function SPA_student() {
+  const { studentPreferences, facultyPreferences } = await getPreferences();
+  const projects = await pool.query("SELECT project_id, faculty_id, available_slots FROM projects");
+
+  let studentPrefMapping = {};
+  studentPreferences.forEach(({ student_id, project_id }) => {
+    if (!studentPrefMapping[student_id]) {
+      studentPrefMapping[student_id] = [];
+    }
+    studentPrefMapping[student_id].push(Number(project_id));
+  });
+  console.log("SPA - Student preference mapping:", studentPrefMapping);
+  // broadcast("SPA - Student preference mapping:"+JSON.stringify(studentPrefMapping));
+  let facPrefMapping = {};
+  facultyPreferences.forEach(({ project_id, student_id, rank }) => {
+    if (!facPrefMapping[project_id]) {
+      facPrefMapping[project_id] = [];
+    }
+    facPrefMapping[project_id].push({ student_id: Number(student_id), rank });
+  });
+
+  Object.keys(facPrefMapping).forEach(pid => {
+    facPrefMapping[pid].sort((a, b) => a.rank - b.rank);
+    facPrefMapping[pid] = facPrefMapping[pid].map(item => item.student_id);
+  });
+  console.log("SPA - Faculty (per project) preference mapping:", facPrefMapping);
+  // broadcast("SPA - Faculty (per project) preference mapping:"+JSON.stringify(facPrefMapping));
+
+
+  let projectData = {};
+  let projectAssignments = {};
+
+  projects.rows.forEach(({ project_id, faculty_id, available_slots }) => {
+    projectData[project_id] = {
+      faculty_id,
+      capacity: available_slots,
+      assigned: []
+    };
+  });
+  console.log("SPA - Project data:", projectData);
+  // broadcast("SPA - Project data:"+JSON.stringify(projectData));
+
+  let freeStudents = new Set(Object.keys(studentPrefMapping));
+
+  // if there are free projects
+  while (freeStudents.size > 0) {
+    console.log("Free projects:", Array.from(freeStudents));
+    // broadcast("Free projects:" + JSON.stringify(Array.from(freeStudents)));
+
+// free proj at that instance
+    for (let student_id of Array.from(freeStudents)) {
+      let prefList = studentPrefMapping[student_id];
+      if (!prefList || prefList.length === 0) {
+        freeStudents.delete(student_id);
+        console.log(`Student ${student_id} has no more projects to propose to. Removing from freeStudents.`);
+        continue;
+      }
+
+      // if not using shift(), the student gets proposed to that project again and again
+      // first preferred project is selected then the other .. and so on..
+      let project_id = prefList.shift();
+      console.log(`student_id ${student_id} proposes to project ${project_id}`);
+
+      // if in the preference mapping of the student, the project is not present, the student is skipped
+      if (!facPrefMapping[project_id] || !facPrefMapping[project_id].includes(Number(student_id))) {
+        console.log(`project ${project_id} does not have student ${project_id} in their preferences. Proposal rejected.`);
+        continue;
+      }
+
+      // if the project is preferred, 
+      // the already assigned project to it is removed and this project is assigned and the 
+      // old project is added back to free projects, 
+      // and the student is removed from the assigned of old project
+      if (projectData[project_id].assigned.length < projectData[project_id].capacity) { 
+        // let oldProject = studentAssignments[student_id];
+        // projectData[oldProject].assigned = projectData[oldProject].assigned.filter(s => s !== student_id);
+        // freeProjects.add(String(oldProject));
+        // console.log(`Student ${student_id} was reassigned from project ${oldProject} to project ${project_id}.`);
+        if (projectData[project_id].assigned.length === 0){
+          projectAssignments[project_id] = [];
+        }
+        projectAssignments[project_id].push(student_id); 
+        projectData[project_id].assigned.push(student_id);
+        freeStudents.delete(student_id);
+      }
+      else {
+        let assigned = projectData[project_id].assigned;
+        let facultyPref = facPrefMapping[project_id] || [];
+        let worstStudent = assigned.reduce((worst, s) => {
+          // If the student s ranks lower (i.e. appears later in the facultyPref list)
+          // than the current worst, then update worst.
+          if (worst === null) return s;
+          let worstIndex = facultyPref.indexOf(worst);
+          let sIndex = facultyPref.indexOf(s);
+          return sIndex > worstIndex ? s : worst;
+        }, null);
+        projectData[project_id].assigned = assigned.filter(s => s !== worstStudent);
+        freeStudents.add(String(worstStudent));
+        console.log(`Project ${project_id} over-subscribed: removed worst student ${worstStudent}`);
+      }
+
+      if (projectData[project_id].assigned.includes(Number(student_id))) {
+        freeStudents.delete(student_id);
+      
+      // all the projects after the project in the preference of that student is removed
+      let idx = facPrefMapping[project_id].indexOf(Number(student_id));
+      if (idx !== -1) {
+        let removed = facPrefMapping[project_id].splice(idx + 1);
+        console.log(`Removed successors from projects ${project_id}'s preference list after assignment to student ${student_id}:`, removed);
+      }
+      
+      console.log(`Project ${project_id} assigned student ${student_id}`);
+
+    }}
+  }
+  
+  console.log("Final student assignments:", projectAssignments);
+  return projectAssignments;
+
+}
+
+async function saveAllocations_SPAstudent() {
+  const client = await pool.connect(); // Get a client from the pool
+  try {
+    await client.query("BEGIN"); // Start transaction
+    const allocations = await SPA_student();
+    console.log("SPA student",allocations);
+  // Clear previous allocations
+  await pool.query("DELETE FROM project_allocations");
+    for (const [project_id, students] of Object.entries(allocations)) {
+      for (const student_id of students) {
+        const facultyResult = await client.query(
+          "SELECT faculty_id FROM projects WHERE project_id = $1",
+          [project_id]
+        );
+        const faculty_id = facultyResult.rows[0]?.faculty_id || null;
+
+        await client.query(
+          `INSERT INTO project_allocations (student_id, project_id, faculty_id) 
+           VALUES ($1, $2, $3) 
+           ON CONFLICT (student_id, project_id) DO NOTHING`,
+          [student_id, project_id, faculty_id]
+        );
+      }
+    }
+
+    await client.query("COMMIT"); // Commit transaction
+    await SPA_student();
+    console.log("Project allocations -- SPA student saved successfully!");
+  } catch (err) {
+    await client.query("ROLLBACK"); // Rollback on error
+    console.error("Error allocating projects:", err);
+  } finally {
+    client.release(); // Release the client back to the pool
+  }
+}
+ 
+
+
+
+
 saveAllocations()
   .catch((err) => console.error("Error allocating projects:", err));
 
@@ -523,4 +840,6 @@ module.exports = {
   pool,
   saveAllocations_facpropose,
   saveAllocations,
+  saveAllocations_SPAlecture,
+  saveAllocations_SPAstudent,
 };

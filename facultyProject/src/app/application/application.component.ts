@@ -25,6 +25,9 @@ export class ApplicationComponent {
   page: number = 1;
 
   isUpdating = false;
+
+  currentAllocationType: string = '';
+
   constructor (private service : ApplicationDataService){}
 
   ngOnInit() {
@@ -67,6 +70,7 @@ export class ApplicationComponent {
   
 
   fetchAllocations(){
+    this.currentAllocationType = 'Student Preferred, Gale Shapley';
     if (!this.projectselected?.project_id) return;
 
     this.service.getAllocations(this.projectselected.project_id).subscribe({
@@ -90,9 +94,42 @@ export class ApplicationComponent {
   }
 
   fetchAllocations_facpropose(){
+    this.currentAllocationType = 'Faculty Preferred, Gale Shapley';
     if (!this.projectselected?.project_id) return;
 
     this.service.getAllocations_facpropose(this.projectselected.project_id).subscribe({
+      next: (AppData) => {
+        this.allocations = AppData || [];
+        console.log('Allocations_facpropose:', this.allocations);
+      },
+      error: (error) => {
+        console.error('Error fetching allocations:', error);
+        alert('Failed to load allocations. Please try again.');
+      }
+    });
+  }
+
+  fetchAllocations_SPAlecturer(){
+    this.currentAllocationType = 'SPA lecturer allocations';
+    if (!this.projectselected?.project_id) return;
+
+    this.service.getAllocations_SPAlecturer(this.projectselected.project_id).subscribe({
+      next: (AppData) => {
+        this.allocations = AppData || [];
+        console.log('Allocations_facpropose:', this.allocations);
+      },
+      error: (error) => {
+        console.error('Error fetching allocations:', error);
+        alert('Failed to load allocations. Please try again.');
+      }
+    });
+  }
+
+  fetchAllocations_SPAstudent(){
+    this.currentAllocationType = 'SPA student allocations';
+    if (!this.projectselected?.project_id) return;
+
+    this.service.getAllocations_SPAstudent(this.projectselected.project_id).subscribe({
       next: (AppData) => {
         this.allocations = AppData || [];
         console.log('Allocations_facpropose:', this.allocations);
