@@ -770,37 +770,44 @@ app.get('/Allocations_boston', async (req, res) => {
       console.error(err);
       res.status(500).json({ error: 'Internal Server Error' });
     }
-  });
-  app.get('/Allocations_boston/:id', async (req,res) => {
+});
+app.get('/Allocations_boston/:id', async (req,res) => {
     try {
         await saveAllocations_boston();
         console.log("boston req",req.params)
         const id = req.params.id;
-            const studResult = await pool.query(
-                `SELECT a.Application_id, s.firstName || ' ' || s.lastName as name , s.cgpa, s.Roll_no, s.year, a.Status, 
-                a.bio, d.dept_name, a.Application_date, ba.score AS match_score, br.rank AS rank
-                 FROM project_applications a
-                 JOIN students s ON a.student_id = s.Roll_no
-                 JOIN Department d ON s.Department_id = d.dept_id
-                 LEFT JOIN boston_allocations ba ON a.student_id = ba.student_id AND a.project_id = ba.Project_id
-                 LEFT JOIN boston_ranks br ON a.student_id = br.student_id AND a.project_id = br.project_id
+        const studResult = await pool.query(
+            `SELECT a.Application_id, s.firstName || ' ' || s.lastName as name , s.cgpa, s.Roll_no, s.year, a.Status, 
+            a.bio, d.dept_name, a.Application_date, ba.score AS match_score, br.rank AS rank
+                FROM project_applications a
+                JOIN students s ON a.student_id = s.Roll_no
+                JOIN Department d ON s.Department_id = d.dept_id
+                LEFT JOIN boston_allocations ba ON a.student_id = ba.student_id AND a.project_id = ba.Project_id
+                LEFT JOIN boston_ranks br ON a.student_id = br.student_id AND a.project_id = br.project_id
 
-                 WHERE a.Project_id = $1
-                 ORDER BY br.rank ASC NULLS LAST, a.Application_date DESC;`,[id]
-            );
-            applications = studResult.rows;
-            res.json(applications);
-            console.log(applications)
-        }
-       
-        
-     catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Internal Server Error' });
+                WHERE a.Project_id = $1
+                ORDER BY br.rank ASC NULLS LAST, a.Application_date DESC;`,[id]
+        );
+        applications = studResult.rows;
+        res.json(applications);
+        console.log(applications)
+    }   
+    catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
     }
-
-
 });
+app.post('/Allocations_boston', async (req, res) => {
+    try {
+      const priorities = req.body.priorities; // e.g., { first: 'prereq', second: 'department', third: 'year' }
+      const allocations = await saveAllocations_boston(priorities);
+      res.status(200).json({ message: 'Boston mechanism allocations saved.', allocations });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
 
 // Route to trigger and return Boston mechanism allocations
 // app.get('/Allocations_boston', async (req, res) => {

@@ -1,8 +1,6 @@
 require("dotenv").config();
 const { Pool } = require("pg");
-// const { io } = require('./server'); 
-
-
+// const { io } = require('./server');
 
 const pool = new Pool({
   user: "postgres", // Replace with your actual username
@@ -50,8 +48,8 @@ async function getPreferences() {
 // Gale-Shapley Algorithm for Project Allocation
 async function galeShapley() {
   const { studentPreferences, facultyPreferences } = await getPreferences();
-  console.log ("Preferences - students", studentPreferences);
-  console.log ("Preferences - faculty", facultyPreferences);
+  console.log("Preferences - students", studentPreferences);
+  console.log("Preferences - faculty", facultyPreferences);
   let studentProposals = {}; // Students' project preferences
   let projectSlots = {}; // Available slots for each project
   let projectAllocations = {}; // Tracks project allocations
@@ -340,7 +338,7 @@ async function galeShapley_facpropose() {
     }
     studentPrefMapping[student_id].push(project_id);
   });
-  console.log("pref mapping",studentPrefMapping);
+  console.log("pref mapping", studentPrefMapping);
   // Build faculty proposal mapping: faculty_id -> ordered array of proposals
   let facultyProposalMapping = {};
   facultyPreferences.forEach(({ faculty_id, student_id, project_id, rank }) => {
@@ -349,13 +347,12 @@ async function galeShapley_facpropose() {
     }
     facultyProposalMapping[faculty_id].push({ student_id, project_id, rank });
   });
-  
 
   // Sort proposals by rank
   for (let faculty_id in facultyProposalMapping) {
     facultyProposalMapping[faculty_id].sort((a, b) => a.rank - b.rank);
   }
-  console.log("pref mapping - faculty",facultyProposalMapping);
+  console.log("pref mapping - faculty", facultyProposalMapping);
 
   // Build project slot tracker and allocations
   let projectSlots = {};
@@ -474,7 +471,7 @@ async function saveAllocations_facpropose() {
     // Run the Gale-Shapley algorithm (faculty propose version)
     // It should return an object with keys as student_ids and values as assignments objects
     const studentAssignments = await galeShapley_facpropose();
-    console.log("faccc---prop",studentAssignments);
+    console.log("faccc---prop", studentAssignments);
     // const stud2 = await SPA_lecturer();
     // console.log("SPA lecturer", stud2);
     console.log("faccc---prop", studentAssignments);
@@ -507,41 +504,6 @@ async function saveAllocations_facpropose() {
   }
 }
 
-async function saveAllocations_SPAlecture() {
-  const client = await pool.connect(); 
-  try {
-    await client.query("BEGIN"); 
-    const studentAssignments = await SPA_lecturer();
-    console.log("SPA lecturer allocations",studentAssignments);
-    
-    await client.query("DELETE FROM project_allocations");
-    console.log("ass :", Object.entries(studentAssignments));
-    // Iterate over each student assignment
-    for (const [student_id, project_id] of Object.entries(studentAssignments)) {
-      // const project_id = assignment.project_id;
-      const {faculty_id} = (await client.query("SELECT faculty_id from projects where project_id = $1",[project_id])).rows[0];
-      console.log("faculty_id",faculty_id);
-      // Insert the allocation into the database
-      await client.query(
-        `INSERT INTO project_allocations (student_id, project_id, faculty_id) 
-         VALUES ($1, $2, $3) 
-         ON CONFLICT (student_id, project_id) DO NOTHING`,
-        [student_id, project_id, faculty_id]
-      );
-    }
-
-    await client.query("COMMIT"); // Commit transaction
-    console.log("Project allocations (faculty propose) saved successfully!");
-  } catch (err) {
-    await client.query("ROLLBACK"); // Rollback on error
-    console.error("Error in saving allocations (faculty propose):", err);
-  } finally {
-    client.release(); // Release the client back to the pool
-  }
-}
-
-
-
 async function setupTriggers() {
   await pool.query(`
     CREATE OR REPLACE FUNCTION trigger_gale_shapley()
@@ -566,13 +528,27 @@ async function setupTriggers() {
   console.log("Triggers set up successfully!");
 }
 
-async function bostonMechanism() {
-  const students = (await pool.query("SELECT Roll_no AS student_id, cgpa, year, Department_id FROM students")).rows;
-  const projects = (await pool.query(
+async function bostonMechanism(priorities) {
+
+  const weights = {
+    [priorities.first]: 12,
+    [priorities.second]: 9,
+    [priorities.third]: 6
+  };
+
+  const students = (
+    await pool.query(
+      "SELECT Roll_no AS student_id, cgpa, year, Department_id FROM students"
+    )
+  ).rows;
+  const projects = (
+    await pool.query(
       `SELECT p.project_id, p.available_slots, p.min_cgpa, p.min_year, pd.dept_id AS department_id FROM projects p 
       LEFT JOIN project_dept pd ON p.project_id = pd.project_id`
-    )).rows;
-  const applications = (await pool.query("SELECT * FROM project_applications")).rows;
+    )
+  ).rows;
+  const applications = (await pool.query("SELECT * FROM project_applications"))
+    .rows;
 
   const studentMap = Object.fromEntries(students.map((s) => [s.student_id, s]));
   const projectMap = Object.fromEntries(projects.map((p) => [p.project_id, p]));
@@ -590,37 +566,36 @@ async function bostonMechanism() {
     const min_year = project.min_year;
     const project_dept = project.department_id;
 
-    let score = cgpa; // Default to 0 if CGPA is null
+    let score = cgpa; 
 
-    if (year != null && min_year != null && year >= min_year) score += 1;
-    if (Department_id != null && project_dept != null && Department_id === project_dept) score += 2;
+    if (year != null && min_year != null && year >= min_year) score += weights['year'] || 0;
+    if (
+      Department_id != null &&
+      project_dept != null &&
+      Department_id === project_dept
+    )
+      score += weights['department'] || 0;
 
-      const prereqRes = await pool.query(
-        `SELECT course_id FROM prereq WHERE project_id = $1`,
-        [project.project_id]
-      );
-      const prereqIds = prereqRes.rows.map(row => row.course_id);
-      
-      const completedRes = await pool.query(
-        `SELECT course_id FROM student_courses WHERE student_id = $1`,
-        [student.student_id]
-      );
-      const completedIds = completedRes.rows.map(row => row.course_id);
-      
-      const matchedCourses = prereqIds.filter(id => completedIds.includes(id));
-      let prereqBonus = 0;
-if (prereqIds.length > 0) {
-  const percentMatched = matchedCourses.length / prereqIds.length;
-  prereqBonus = percentMatched * 3; // Bonus out of 3
-}
+    const prereqRes = await pool.query(
+      `SELECT course_id FROM prereq WHERE project_id = $1`,
+      [project.project_id]
+    );
+    const prereqIds = prereqRes.rows.map((row) => row.course_id);
 
-score += prereqBonus;
+    const completedRes = await pool.query(
+      `SELECT course_id FROM student_courses WHERE student_id = $1`,
+      [student.student_id]
+    );
+    const completedIds = completedRes.rows.map((row) => row.course_id);
 
-    // if (cgpa == null || year == null || Department_id == null || min_year == null) {
-    //   console.warn(`Incomplete data for student ${student_id}, project ${project_id}:`, {
-    //     cgpa, year, Department_id, min_year, project_dept
-    //   });
-    // }
+    const matchedCourses = prereqIds.filter((id) => completedIds.includes(id));
+    let prereqBonus = 0;
+    if (prereqIds.length > 0) {
+      const percentMatched = matchedCourses.length / prereqIds.length;
+      prereqBonus = percentMatched * (weights['prereq'] || 0);
+    }
+
+    score += prereqBonus;
 
     if (!projectApplicants[project.project_id])
       projectApplicants[project.project_id] = [];
@@ -654,12 +629,12 @@ score += prereqBonus;
   return { allocations, ranks };
 }
 
-async function saveAllocations_boston() {
+async function saveAllocations_boston(priorities) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
 
-    const { allocations, ranks } = await bostonMechanism();
+    const { allocations, ranks } = await bostonMechanism(priorities);
 
     // Clear previous records
     await client.query("DELETE FROM boston_allocations");
@@ -687,66 +662,6 @@ async function saveAllocations_boston() {
       }
     }
 
-    // // Fetch all project applications
-    // const applicationsResult = await client.query(`
-    //   SELECT
-    //     a.student_id, a.project_id, s.cgpa, s.year, s.Department_id,
-    //     p.available_slots, p.min_cgpa, p.min_year, pd.dept_id as project_dept,
-    //     pr.faculty_id
-    //   FROM project_applications a
-    //   JOIN students s ON a.student_id = s.Roll_no
-    //   JOIN projects p ON a.project_id = p.project_id
-    //   LEFT JOIN project_dept pd ON p.project_id = pd.project_id
-    //   JOIN projects pr ON a.project_id = pr.project_id
-    // `);
-
-    // const allApplications = applicationsResult.rows;
-
-    // // Group applications by project and calculate score
-    // const allocations = {};
-    // const scoresByProject = {};
-
-    // for (const app of allApplications) {
-    //   const { student_id, project_id, cgpa, year, Department_id, min_year, project_dept, faculty_id } = app;
-
-    //   let score = cgpa;
-    //   if (year >= min_year) score += 1;
-    //   if (Department_id === project_dept) score += 2;
-
-    //   if (!allocations[project_id]) allocations[project_id] = [];
-    //   allocations[project_id].push({ student_id, score, faculty_id });
-
-    //   if (!scoresByProject[project_id]) scoresByProject[project_id] = [];
-    //   scoresByProject[project_id].push({ student_id, score });
-    // }
-
-    // // Save scores to boston_allocations (all applicants)
-    // for (const [project_id, applicants] of Object.entries(allocations)) {
-    //   for (const { student_id, score, faculty_id } of applicants) {
-    //     await client.query(
-    //       `INSERT INTO boston_allocations (student_id, project_id, faculty_id, score)
-    //        VALUES ($1, $2, $3, $4)`,
-    //       [student_id, project_id, faculty_id, score]
-    //     );
-    //   }
-    // }
-
-    // // Save ranks to boston_ranks (based on scores)
-    // for (const [project_id, scoreList] of Object.entries(scoresByProject)) {
-    //   // Sort by descending score
-    //   scoreList.sort((a, b) => b.score - a.score);
-
-    //   let rank = 1;
-    //   for (const { student_id } of scoreList) {
-    //     await client.query(
-    //       `INSERT INTO boston_ranks (student_id, project_id, rank)
-    //        VALUES ($1, $2, $3)`,
-    //       [student_id, project_id, rank]
-    //     );
-    //     rank++;
-    //   }
-    // }
-
     await client.query("COMMIT");
     console.log("Boston scores and ranks saved successfully!");
   } catch (err) {
@@ -771,7 +686,9 @@ pool.connect().then((client) => {
 
 async function SPA_lecturer() {
   const { studentPreferences, facultyPreferences } = await getPreferences();
-  const projects = await pool.query("SELECT project_id, faculty_id, available_slots FROM projects");
+  const projects = await pool.query(
+    "SELECT project_id, faculty_id, available_slots FROM projects"
+  );
 
   let studentPrefMapping = {};
   studentPreferences.forEach(({ student_id, project_id }) => {
@@ -791,12 +708,14 @@ async function SPA_lecturer() {
     facPrefMapping[project_id].push({ student_id: Number(student_id), rank });
   });
 
-  Object.keys(facPrefMapping).forEach(pid => {
+  Object.keys(facPrefMapping).forEach((pid) => {
     facPrefMapping[pid].sort((a, b) => a.rank - b.rank);
-    facPrefMapping[pid] = facPrefMapping[pid].map(item => item.student_id);
+    facPrefMapping[pid] = facPrefMapping[pid].map((item) => item.student_id);
   });
-  console.log("SPA - Faculty (per project) preference mapping:", facPrefMapping);
-
+  console.log(
+    "SPA - Faculty (per project) preference mapping:",
+    facPrefMapping
+  );
 
   let projectData = {};
   let studentAssignments = {};
@@ -805,11 +724,10 @@ async function SPA_lecturer() {
     projectData[project_id] = {
       faculty_id,
       capacity: available_slots,
-      assigned: []
+      assigned: [],
     };
   });
   console.log("SPA - Project data:", projectData);
-
 
   let freeProjects = new Set(Object.keys(facPrefMapping));
 
@@ -817,7 +735,7 @@ async function SPA_lecturer() {
   while (freeProjects.size > 0) {
     console.log("Free projects:", Array.from(freeProjects));
 
-// free proj at that instance
+    // free proj at that instance
     for (let project_id of Array.from(freeProjects)) {
       let project = projectData[project_id];
       // if the proj is full remove from free projects
@@ -826,11 +744,13 @@ async function SPA_lecturer() {
         continue;
       }
 
-// pref list for each project
+      // pref list for each project
       let prefList = facPrefMapping[project_id];
       if (!prefList || prefList.length === 0) {
         freeProjects.delete(project_id);
-        console.log(`Project ${project_id} has no more students to propose to. Removing from freeProjects.`);
+        console.log(
+          `Project ${project_id} has no more students to propose to. Removing from freeProjects.`
+        );
         continue;
       }
 
@@ -840,52 +760,69 @@ async function SPA_lecturer() {
       console.log(`Project ${project_id} proposes to student ${student_id}`);
 
       // if in the preference mapping of the student, the project is not present, the student is skipped
-      if (!studentPrefMapping[student_id] || !studentPrefMapping[student_id].includes(Number(project_id))) {
-        console.log(`Student ${student_id} does not have project ${project_id} in their preferences. Proposal rejected.`);
+      if (
+        !studentPrefMapping[student_id] ||
+        !studentPrefMapping[student_id].includes(Number(project_id))
+      ) {
+        console.log(
+          `Student ${student_id} does not have project ${project_id} in their preferences. Proposal rejected.`
+        );
         continue;
       }
 
-      // if the student is preferred, 
-      // the already assigned project to it is removed and this project is assigned and the 
-      // old project is added back to free projects, 
+      // if the student is preferred,
+      // the already assigned project to it is removed and this project is assigned and the
+      // old project is added back to free projects,
       // and the student is removed from the assigned of old project
-      if (studentAssignments[student_id] !== undefined) { 
+      if (studentAssignments[student_id] !== undefined) {
         let oldProject = studentAssignments[student_id];
-        projectData[oldProject].assigned = projectData[oldProject].assigned.filter(s => s !== student_id);
+        projectData[oldProject].assigned = projectData[
+          oldProject
+        ].assigned.filter((s) => s !== student_id);
         freeProjects.add(String(oldProject));
-        console.log(`Student ${student_id} was reassigned from project ${oldProject} to project ${project_id}.`);
+        console.log(
+          `Student ${student_id} was reassigned from project ${oldProject} to project ${project_id}.`
+        );
       }
 
-      // the student is added to assigned of the current project, 
+      // the student is added to assigned of the current project,
       // and this is added to assignments
       project.assigned.push(student_id);
       studentAssignments[student_id] = Number(project_id);
-      
+
       // all the projects after the project in the preference of that student is removed
       let idx = studentPrefMapping[student_id].indexOf(Number(project_id));
       if (idx !== -1) {
         let removed = studentPrefMapping[student_id].splice(idx + 1);
-        console.log(`Removed successors from student ${student_id}'s preference list after assignment to project ${project_id}:`, removed);
+        console.log(
+          `Removed successors from student ${student_id}'s preference list after assignment to project ${project_id}:`,
+          removed
+        );
       }
-      
-      console.log(`Project ${project_id} (Faculty ${project.faculty_id}) assigned student ${student_id}`);
+
+      console.log(
+        `Project ${project_id} (Faculty ${project.faculty_id}) assigned student ${student_id}`
+      );
 
       // if the assigned lists length = capacity, the project is deleted from the freeprojects
       if (project.assigned.length >= project.capacity) {
         freeProjects.delete(project_id);
-        console.log(`Project ${project_id} is now full. Removing from freeProjects.`);
+        console.log(
+          `Project ${project_id} is now full. Removing from freeProjects.`
+        );
       }
     }
   }
-  
+
   console.log("Final student assignments:", studentAssignments);
   return studentAssignments;
 }
 
-
 async function SPA_student() {
   const { studentPreferences, facultyPreferences } = await getPreferences();
-  const projects = await pool.query("SELECT project_id, faculty_id, available_slots FROM projects");
+  const projects = await pool.query(
+    "SELECT project_id, faculty_id, available_slots FROM projects"
+  );
 
   let studentPrefMapping = {};
   studentPreferences.forEach(({ student_id, project_id }) => {
@@ -904,13 +841,15 @@ async function SPA_student() {
     facPrefMapping[project_id].push({ student_id: Number(student_id), rank });
   });
 
-  Object.keys(facPrefMapping).forEach(pid => {
+  Object.keys(facPrefMapping).forEach((pid) => {
     facPrefMapping[pid].sort((a, b) => a.rank - b.rank);
-    facPrefMapping[pid] = facPrefMapping[pid].map(item => item.student_id);
+    facPrefMapping[pid] = facPrefMapping[pid].map((item) => item.student_id);
   });
-  console.log("SPA - Faculty (per project) preference mapping:", facPrefMapping);
+  console.log(
+    "SPA - Faculty (per project) preference mapping:",
+    facPrefMapping
+  );
   // broadcast("SPA - Faculty (per project) preference mapping:"+JSON.stringify(facPrefMapping));
-
 
   let projectData = {};
   let projectAssignments = {};
@@ -919,7 +858,7 @@ async function SPA_student() {
     projectData[project_id] = {
       faculty_id,
       capacity: available_slots,
-      assigned: []
+      assigned: [],
     };
   });
   console.log("SPA - Project data:", projectData);
@@ -932,12 +871,14 @@ async function SPA_student() {
     console.log("Free projects:", Array.from(freeStudents));
     // broadcast("Free projects:" + JSON.stringify(Array.from(freeStudents)));
 
-// free proj at that instance
+    // free proj at that instance
     for (let student_id of Array.from(freeStudents)) {
       let prefList = studentPrefMapping[student_id];
       if (!prefList || prefList.length === 0) {
         freeStudents.delete(student_id);
-        console.log(`Student ${student_id} has no more projects to propose to. Removing from freeStudents.`);
+        console.log(
+          `Student ${student_id} has no more projects to propose to. Removing from freeStudents.`
+        );
         continue;
       }
 
@@ -947,28 +888,35 @@ async function SPA_student() {
       console.log(`student_id ${student_id} proposes to project ${project_id}`);
 
       // if in the preference mapping of the student, the project is not present, the student is skipped
-      if (!facPrefMapping[project_id] || !facPrefMapping[project_id].includes(Number(student_id))) {
-        console.log(`project ${project_id} does not have student ${project_id} in their preferences. Proposal rejected.`);
+      if (
+        !facPrefMapping[project_id] ||
+        !facPrefMapping[project_id].includes(Number(student_id))
+      ) {
+        console.log(
+          `project ${project_id} does not have student ${project_id} in their preferences. Proposal rejected.`
+        );
         continue;
       }
 
-      // if the project is preferred, 
-      // the already assigned project to it is removed and this project is assigned and the 
-      // old project is added back to free projects, 
+      // if the project is preferred,
+      // the already assigned project to it is removed and this project is assigned and the
+      // old project is added back to free projects,
       // and the student is removed from the assigned of old project
-      if (projectData[project_id].assigned.length < projectData[project_id].capacity) { 
+      if (
+        projectData[project_id].assigned.length <
+        projectData[project_id].capacity
+      ) {
         // let oldProject = studentAssignments[student_id];
         // projectData[oldProject].assigned = projectData[oldProject].assigned.filter(s => s !== student_id);
         // freeProjects.add(String(oldProject));
         // console.log(`Student ${student_id} was reassigned from project ${oldProject} to project ${project_id}.`);
-        if (projectData[project_id].assigned.length === 0){
+        if (projectData[project_id].assigned.length === 0) {
           projectAssignments[project_id] = [];
         }
-        projectAssignments[project_id].push(student_id); 
+        projectAssignments[project_id].push(student_id);
         projectData[project_id].assigned.push(student_id);
         freeStudents.delete(student_id);
-      }
-      else {
+      } else {
         let assigned = projectData[project_id].assigned;
         let facultyPref = facPrefMapping[project_id] || [];
         let worstStudent = assigned.reduce((worst, s) => {
@@ -979,29 +927,73 @@ async function SPA_student() {
           let sIndex = facultyPref.indexOf(s);
           return sIndex > worstIndex ? s : worst;
         }, null);
-        projectData[project_id].assigned = assigned.filter(s => s !== worstStudent);
+        projectData[project_id].assigned = assigned.filter(
+          (s) => s !== worstStudent
+        );
         freeStudents.add(String(worstStudent));
-        console.log(`Project ${project_id} over-subscribed: removed worst student ${worstStudent}`);
+        console.log(
+          `Project ${project_id} over-subscribed: removed worst student ${worstStudent}`
+        );
       }
 
       if (projectData[project_id].assigned.includes(Number(student_id))) {
         freeStudents.delete(student_id);
-      
-      // all the projects after the project in the preference of that student is removed
-      let idx = facPrefMapping[project_id].indexOf(Number(student_id));
-      if (idx !== -1) {
-        let removed = facPrefMapping[project_id].splice(idx + 1);
-        console.log(`Removed successors from projects ${project_id}'s preference list after assignment to student ${student_id}:`, removed);
-      }
-      
-      console.log(`Project ${project_id} assigned student ${student_id}`);
 
-    }}
+        // all the projects after the project in the preference of that student is removed
+        let idx = facPrefMapping[project_id].indexOf(Number(student_id));
+        if (idx !== -1) {
+          let removed = facPrefMapping[project_id].splice(idx + 1);
+          console.log(
+            `Removed successors from projects ${project_id}'s preference list after assignment to student ${student_id}:`,
+            removed
+          );
+        }
+
+        console.log(`Project ${project_id} assigned student ${student_id}`);
+      }
+    }
   }
-  
+
   console.log("Final student assignments:", projectAssignments);
   return projectAssignments;
+}
 
+async function saveAllocations_SPAlecture() {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const studentAssignments = await SPA_lecturer();
+    console.log("SPA lecturer allocations", studentAssignments);
+
+    await client.query("DELETE FROM project_allocations");
+    console.log("ass :", Object.entries(studentAssignments));
+    // Iterate over each student assignment
+    for (const [student_id, project_id] of Object.entries(studentAssignments)) {
+      // const project_id = assignment.project_id;
+      const { faculty_id } = (
+        await client.query(
+          "SELECT faculty_id from projects where project_id = $1",
+          [project_id]
+        )
+      ).rows[0];
+      console.log("faculty_id", faculty_id);
+      // Insert the allocation into the database
+      await client.query(
+        `INSERT INTO project_allocations (student_id, project_id, faculty_id) 
+         VALUES ($1, $2, $3) 
+         ON CONFLICT (student_id, project_id) DO NOTHING`,
+        [student_id, project_id, faculty_id]
+      );
+    }
+
+    await client.query("COMMIT"); // Commit transaction
+    console.log("Project allocations (faculty propose) saved successfully!");
+  } catch (err) {
+    await client.query("ROLLBACK"); // Rollback on error
+    console.error("Error in saving allocations (faculty propose):", err);
+  } finally {
+    client.release(); // Release the client back to the pool
+  }
 }
 
 async function saveAllocations_SPAstudent() {
@@ -1009,9 +1001,9 @@ async function saveAllocations_SPAstudent() {
   try {
     await client.query("BEGIN"); // Start transaction
     const allocations = await SPA_student();
-    console.log("SPA student",allocations);
-  // Clear previous allocations
-  await pool.query("DELETE FROM project_allocations");
+    console.log("SPA student", allocations);
+    // Clear previous allocations
+    await pool.query("DELETE FROM project_allocations");
     for (const [project_id, students] of Object.entries(allocations)) {
       for (const student_id of students) {
         const facultyResult = await client.query(
@@ -1039,121 +1031,6 @@ async function saveAllocations_SPAstudent() {
     client.release(); // Release the client back to the pool
   }
 }
- 
-
-
-
-
-// async function bostonMechanism() {
-//   const { studentPreferences } = await getPreferences();
-
-//   const students = (
-//     await pool.query(
-//       "SELECT Roll_no AS student_id, cgpa, year, Department_id FROM students"
-//     )
-//   ).rows;
-
-//   const projects = (
-//     await pool.query(
-//       `SELECT p.project_id, p.available_slots, p.min_cgpa, p.min_year, p.faculty_id,
-//               pd.dept_id as department_id
-//        FROM projects p
-//        LEFT JOIN project_dept pd ON p.project_id = pd.project_id`
-//     )
-//   ).rows;
-
-//   const studentData = Object.fromEntries(
-//     students.map((s) => [s.student_id, s])
-//   );
-
-//   const projectSlots = Object.fromEntries(
-//     projects.map((p) => [p.project_id, p.available_slots])
-//   );
-//   const projectAllocations = Object.fromEntries(
-//     projects.map((p) => [p.project_id, []])
-//   );
-
-//   const projectApplicants = {};
-
-//   // Group applicants by project and calculate scores
-//   studentPreferences.forEach(({ student_id, project_id }) => {
-//     const student = studentData[student_id];
-//     const project = projects.find((p) => p.project_id === project_id);
-//     if (!student || !project) return;
-
-//     const min_sem = project.min_year ?? 0;
-//     let score = student.cgpa;
-//     if (student.year >= min_sem) score += 1;
-//     if (project.department_id === student.Department_id) score += 2;
-
-//     if (!projectApplicants[project_id]) projectApplicants[project_id] = [];
-//     projectApplicants[project_id].push({ student_id, score });
-//   });
-
-//   console.log("boston allocations",projectAllocations)
-//   // console.log("project Applicants", projectApplicants)
-
-//   return { projectAllocations, projectApplicants, projectSlots, projects };
-// }
-
-// async function saveAllocations_boston() {
-//   const client = await pool.connect();
-//   try {
-//     await client.query("BEGIN");
-
-//     const {
-//       projectAllocations,
-//       projectApplicants,
-//       projectSlots,
-//       projects,
-//     } = await bostonMechanism();
-
-//     await client.query("DELETE FROM boston_allocations");
-//     await client.query("DELETE FROM boston_ranks");
-
-//     for (const project_id in projectApplicants) {
-//       const applicants = projectApplicants[project_id];
-//       const remaining = projectSlots[project_id];
-//       if (remaining <= 0) continue;
-
-//       applicants.sort((a, b) => b.score - a.score);
-//       const selected = applicants.slice(0, remaining);
-
-//       // Assign ranks to all applicants (not just selected)
-//       for (let i = 0; i < applicants.length; i++) {
-//         const { student_id } = applicants[i];
-//         await client.query(
-//           `INSERT INTO boston_ranks (student_id, project_id, rank)
-//            VALUES ($1, $2, $3)
-//            ON CONFLICT (student_id, project_id) DO UPDATE SET rank = $3`,
-//           [student_id, project_id, i + 1]
-//         );
-//       }
-
-//       for (const { student_id, score } of selected) {
-//         const project = projects.find((p) => p.project_id == project_id);
-//         const faculty_id = project?.faculty_id || null;
-
-//         await client.query(
-//           `INSERT INTO boston_allocations (student_id, project_id, faculty_id, score)
-//            VALUES ($1, $2, $3, $4)
-//            ON CONFLICT (student_id, project_id) DO UPDATE SET score = $4`,
-//           [student_id, project_id, faculty_id, score]
-//         );
-
-//         projectAllocations[project_id].push(student_id);
-//       }
-//     }
-
-//     await client.query("COMMIT");
-//     console.log("Boston allocations and ranks saved successfully!");
-//   } catch (err) {
-//     await client.query("ROLLBACK");
-//     console.error("Error in Boston mechanism:", err);
-//   } finally {
-//     client.release();
-//   }
-// }
 
 saveAllocations().catch((err) =>
   console.error("Error allocating projects:", err)
