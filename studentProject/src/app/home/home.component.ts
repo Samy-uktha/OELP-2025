@@ -6,7 +6,7 @@ import {
   project,
   Student,
   preference,
-  facultypreference
+  facultypreference,
 } from '../interfaces';
 import { StudentService } from '../student.service';
 import { CommonModule } from '@angular/common';
@@ -14,11 +14,16 @@ import { ProjectService } from '../project.service';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ApplicationDataService } from '../application-data.service';
+import {
+  CdkDragDrop,
+  moveItemInArray,
+  DragDropModule,
+} from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DragDropModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })
@@ -31,12 +36,18 @@ export class HomeComponent {
   applied: any[] = [];
   allProjects: project[] = [];
   eligibleProjects: project[] = [];
+  availableProjects: project[] = [];
   selectedProject: string | null = null;
   showProj: boolean = false;
   selectedFiles: Pdf[] = [];
   tempDocName = '';
   tempDocUrl = '';
-  applicationsData: {[projectId: number]: {bio: string; files: { name: string; url: string }[];};} = {};
+  applicationsData: {
+    [projectId: number]: {
+      bio: string;
+      files: { name: string; url: string }[];
+    };
+  } = {};
 
   isEditingPreferences = false; // Controls visibility of arrows
 
@@ -46,6 +57,11 @@ export class HomeComponent {
       this.getStudentPreferences();
     }
     this.isEditingPreferences = !this.isEditingPreferences;
+  }
+
+  drop(event: CdkDragDrop<string[]>) {
+    moveItemInArray(this.applied, event.previousIndex, event.currentIndex);
+    // this.savePreferences(); // optionally auto-save or wait for user to click "Save"
   }
 
   constructor(
@@ -67,14 +83,16 @@ export class HomeComponent {
       this.router.navigate(['/login']); // Redirect to login page
       return;
     }
+
     // Fetch student data
     this.service.getStudent(this.userId).subscribe({
       next: (Data) => {
         this.student = Data;
         console.log('Fetched student data:', this.student);
-
+        console.log('student.applied', this.student.applied);
         if (this.student.applied) {
           this.update_applications(this.student.applied);
+          this.updateAvailableProjects();
         }
         if (this.student.rollNumber) {
           this.getStudentPreferences();
@@ -82,7 +100,7 @@ export class HomeComponent {
         }
         // Check if projects are already fetched before filtering eligible ones
         if (this.allProjects.length > 0) {
-          this.updateeligibleProjects();
+          this.updateEligibleProjects();
         }
       },
       error: (error) => {
@@ -99,8 +117,9 @@ export class HomeComponent {
 
         // Check if student data is already fetched before filtering eligible ones
         if (this.student.year) {
-          this.updateeligibleProjects();
+          this.updateEligibleProjects();
         }
+        this.updateAvailableProjects();
       },
       error: (error) => {
         console.error('Error fetching projects data:', error);
@@ -110,28 +129,7 @@ export class HomeComponent {
 
     //  this.getStudentPreferences();
   }
-  // getStudentPreferences() {
-  //   if (!this.student.rollNumber) {
-  //     console.error('User ID is missing. Cannot fetch preferences.');
-  //     return;
-  //   }
-  //       this.appservice.getPreferences(this.student.rollNumber).subscribe({
-  //         next: (preferences: preference[]) => {
-  //           console.log('Fetched preferences:', preferences);
 
-  //           if (preferences && preferences.length > 0) {
-  //             this.applied = preferences
-  //             .sort((a, b) => a.rank - b.rank)
-  //               .map(pref => {
-  //                 const project = this.allProjects.find(p => p.project_id === pref.project_id);
-  //                 return project ? project.title : null;
-  //               })
-  //               .filter((title): title is string => title !== null);
-  //           }
-  //         },
-  //         error: (err) => console.error('Error fetching preferences:', err),
-  //       });
-  //     }
 
   getStudentPreferences() {
     if (!this.student.rollNumber) {
@@ -166,30 +164,7 @@ export class HomeComponent {
     });
   }
 
-  //     savePreferences() {
-  //       if (!this.applied || this.applied.length === 0) return;
 
-  //       const preferences = this.applied.map((title, index) => {
-  //         const project = this.allProjects.find(proj => proj.title === title);
-  //         return {
-  //             student_id: this.student.rollNumber,
-  //             project_id: project ? project.project_id : null, // Get project_id
-  //             preference_rank: index + 1,
-  //         };
-  //     });
-
-  //     console.log("preferences sent", preferences);
-  //     this.appservice.savePreferences(preferences).subscribe({
-  //         next: () => {
-  //             alert('Preferences saved successfully!');
-  //             this.isEditingPreferences = false;
-  //         },
-  //         error: (err) => {
-  //             console.error('Error saving preferences:', err);
-  //             alert('Failed to save preferences. Try again.');
-  //         },
-  //     });
-  // }
 
   savePreferences() {
     if (!this.applied || this.applied.length === 0) return;
@@ -230,35 +205,9 @@ export class HomeComponent {
     });
   }
 
-  // getStudentRank() {
-  //   if (!this.student.rollNumber) {
-  //     console.error('User ID is missing. Cannot fetch ranks.');
-  //     return;
-  //   }
-  
-  //   this.appservice.getStudentRank(this.student.rollNumber,this.application.project_id).subscribe({
-  //     next: (ranks: facultypreference[]) => {
-  //       console.log('Fetched student ranks:', ranks);
-  
-  //       // Attach rank information to applied projects
-  //       // this.appliedProjectsWithRank = this.applied.map(title => {
-  //       //   const project = this.allProjects.find(p => p.title === title);
-  //       //   if (!project) return null;
-  
-  //       //   const rankEntry = ranks.find(r => r.project_id === project.project_id);
-  //       //   return {
-  //       //     title: project.title,
-  //       //     rank: rankEntry ? rankEntry.rank : 'Not Ranked'
-  //       //   };
-  //       // }).filter(project => project !== null);
-  //     },
-  //     error: (err) => console.error('Error fetching student ranks:', err),
-  //   });
-  // }
-  
 
 
-  updateeligibleProjects() {
+  updateEligibleProjects() {
     if (!this.student || !this.allProjects.length) {
       console.warn(
         'Cannot filter eligible projects: student or projects data missing.'
@@ -275,6 +224,23 @@ export class HomeComponent {
     );
 
     console.log('Eligible Projects:', this.eligibleProjects);
+  }
+
+  updateAvailableProjects() {
+    if (this.allProjects.length > 0) {
+      // Log the applied projects to verify they are correct
+      console.log('Applied projects:', this.applied);
+
+      this.availableProjects = this.allProjects.filter((project) => {
+        const isApplied = this.applied.includes(project.title);
+        if (isApplied) {
+          console.log(`Skipping applied project: ${project.title}`);
+        }
+        return !isApplied;
+      });
+
+      console.log('Available projects:', this.availableProjects);
+    }
   }
 
   update_applications(applications: projApplication[] | undefined) {
@@ -303,8 +269,10 @@ export class HomeComponent {
     };
     this.application.project_id = project.project_id;
     this.application.title = project.title;
-    this.application.bio = this.applicationsData[this.selected_Project.project_id].bio;
-    this.application.docs = this.applicationsData[this.selected_Project.project_id].files;
+    this.application.bio =
+      this.applicationsData[this.selected_Project.project_id].bio;
+    this.application.docs =
+      this.applicationsData[this.selected_Project.project_id].files;
 
     // Call the backend service to apply
     this.projservice
@@ -391,20 +359,24 @@ export class HomeComponent {
         }
       }
 
-      console.log("appl", this.application);
+      console.log('appl', this.application);
 
       // Fetch faculty-assigned rank for this project
-      this.appservice.getStudentRank(this.student.rollNumber, project.project_id).subscribe({
-        next: (data) => {
+      this.appservice
+        .getStudentRank(this.student.rollNumber, project.project_id)
+        .subscribe({
+          next: (data) => {
             this.application.facultypreference = data.rank; // Store rank in selected project
-            console.log(`Rank for project ${project.title}:`, this.application.facultypreference);
-        },
-        error: (err) => {
+            console.log(
+              `Rank for project ${project.title}:`,
+              this.application.facultypreference
+            );
+          },
+          error: (err) => {
             console.error('Error fetching rank:', err);
             this.application.facultypreference = 0; // Default if error occurs
-        }
-    });
-
+          },
+        });
     } else {
       console.error('Project not found!');
     }
@@ -421,24 +393,6 @@ export class HomeComponent {
 
   back() {
     this.showProj = false;
-  }
-
-  moveUp(index: number) {
-    if (index > 0) {
-      [this.applied[index], this.applied[index - 1]] = [
-        this.applied[index - 1],
-        this.applied[index],
-      ];
-    }
-  }
-
-  moveDown(index: number) {
-    if (index < this.applied.length - 1) {
-      [this.applied[index], this.applied[index + 1]] = [
-        this.applied[index + 1],
-        this.applied[index],
-      ];
-    }
   }
 
   addDocument(docName: string, docUrl: string): void {
@@ -484,7 +438,6 @@ export class HomeComponent {
   removeFile(projectId: number, fileIndex: number) {
     this.applicationsData[projectId].files.splice(fileIndex, 1);
   }
-
 
   getBadgeClass() {
     switch (this.application.status.toLowerCase()) {
