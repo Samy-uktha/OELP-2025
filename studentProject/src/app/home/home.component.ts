@@ -42,6 +42,7 @@ export class HomeComponent {
   selectedFiles: Pdf[] = [];
   tempDocName = '';
   tempDocUrl = '';
+  encodedName = '';
   applicationsData: {
     [projectId: number]: {
       bio: string;
@@ -95,6 +96,7 @@ export class HomeComponent {
           this.updateAvailableProjects();
         }
         if (this.student.rollNumber) {
+          this.encodedName = btoa(this.student.name);
           this.getStudentPreferences();
           // this.getStudentRank();
         }

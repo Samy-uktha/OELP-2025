@@ -216,6 +216,7 @@
                   <p><strong>Roll Number:</strong> {{ student.rollNumber }}</p>
                   <p><strong>Branch:</strong> {{ student.branch }}</p>
                   <p><strong>Year:</strong> {{ student.year }}</p>
+                  <p><strong>Encoded name:</strong> {{ encodedName }}</p>
                   <p><strong>Courses completed:</strong></p>
                   <ul>
                     <li *ngFor="let course of student.completedCourses">
