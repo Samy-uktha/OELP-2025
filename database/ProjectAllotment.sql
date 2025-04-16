@@ -386,7 +386,7 @@ CREATE TABLE boston_ranks (
 
 CREATE OR REPLACE VIEW student_project_preferences AS
 SELECT 
-    s.firstName || s.lastName AS student_name,
+    s.firstName ||' ' ||  s.lastName AS student_name,
     p.Title AS project_name,
     sp.rank AS preference_rank
 FROM 
@@ -398,7 +398,7 @@ JOIN
 
 CREATE OR REPLACE VIEW project_student_preferences AS
 SELECT 
-    s.firstName || s.lastName AS student_name,
+    s.firstName || ' ' || s.lastName AS student_name,
     p.Title AS project_name,
     pp.rank AS preference_rank
 FROM 

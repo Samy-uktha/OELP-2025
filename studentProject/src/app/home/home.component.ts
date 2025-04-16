@@ -36,6 +36,7 @@ export class HomeComponent {
   selectedFiles: Pdf[] = [];
   tempDocName = '';
   tempDocUrl = '';
+  encodedName = '';
   applicationsData: {[projectId: number]: {bio: string; files: { name: string; url: string }[];};} = {};
 
   isEditingPreferences = false; // Controls visibility of arrows
@@ -77,6 +78,7 @@ export class HomeComponent {
           this.update_applications(this.student.applied);
         }
         if (this.student.rollNumber) {
+          this.encodedName = btoa(this.student.name);
           this.getStudentPreferences();
           // this.getStudentRank();
         }
