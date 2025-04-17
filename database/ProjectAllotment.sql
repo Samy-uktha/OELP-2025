@@ -418,3 +418,17 @@ from projects where Title = pproject;
 return capacity;
 end;
 $$ LANGUAGE plpgsql;
+
+
+-- to check if the application exists --
+
+ALTER TABLE student_preferences 
+ADD constraint  fk_application FOREIGN KEY (student_id, project_id)
+        REFERENCES project_applications(Student_id, Project_id)
+        ON DELETE CASCADE;
+
+
+ALTER TABLE faculty_preferences 
+ADD constraint  fk_application FOREIGN KEY (student_id, project_id)
+        REFERENCES project_applications(Student_id, Project_id)
+        ON DELETE CASCADE;
