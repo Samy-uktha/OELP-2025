@@ -1,0 +1,33 @@
+<div class="container mt-3">
+    <h1 class="text-center mb-3">Admin Screen</h1>
+    <div class="card shadow-lg">
+      <div class="card-header bg-primary text-white text-center">
+        <h3>Set Phase Dates</h3>
+      </div>
+      <div class="card-body">
+        <div class="card shadow p-4">
+        <form (ngSubmit)="submitDates()">
+          <div *ngFor="let phase of phases; let i = index; trackBy : trackByPhase" class="mb-4">
+            <div class="row align-items-end">
+              <div class="col-md-3">
+                <label class="form-label fw-bold">Phase {{ phase.phase_number }}</label>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Start Date</label>
+                <input type="date" class="form-control form-control-sm" [(ngModel)]="phase.start_date" name="start{{i}}" (change)="updateEndDate(i)" required />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">End Date</label>
+                <input type="date" class="form-control form-control-sm" [(ngModel)]="phase.end_date" name="end{{i}}" required />
+              </div>
+            </div>
+            <hr />
+          </div>
+          <div class="text-end">
+            <button class="btn btn-success px-4" type="submit">Save All</button>
+          </div>
+        </form>
+    </div>
+      </div>
+    </div>
+  </div>
