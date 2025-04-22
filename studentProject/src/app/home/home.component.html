@@ -1,4 +1,5 @@
 <div class="container-fluid mt-3 p-0 m-0">
+  <app-phase (phaseChanged)="onPhaseChanged($event)"></app-phase>
   <div class="row g-2">
     <!-- Side Panel -->
     <div class="col-lg-3">
@@ -7,6 +8,7 @@
           Application Tracker
         </div>
         <div class="card-body px-3 pt-3 pb-2">
+          <div>
           <ol
             *ngIf="isEditingPreferences"
             cdkDropList
@@ -57,6 +59,7 @@
             <button
               class="btn btn-sm btn-primary m-3"
               (click)="toggleEditing()"
+              [disabled]="!preferencesPhase"
             >
               {{ isEditingPreferences ? "Cancel" : "Change Preference Order" }}
             </button>
@@ -70,7 +73,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </div></div>
 
     <!-- Dashboard -->
     <div *ngIf="!showProj" class="col-lg-9">
@@ -182,6 +185,7 @@
                                 : 'btn-primary'
                             "
                             (click)="apply(project, $event)"
+                            [disabled]="!applicationPhase"
                           >
                             <i
                               class="bi"

@@ -1,0 +1,10 @@
+<div *ngIf="currentPhase" class="alert alert-info text-center fw-semibold rounded-4 shadow">
+    Phase {{ currentPhase.phase_number }}: 
+    <strong>{{ phaseDescriptions[currentPhase.phase_number] }}</strong> is currently ongoing.
+    Ends in {{ daysLeft }} day{{ daysLeft !== 1 ? 's' : '' }} 
+    (on {{ formatDate(currentPhase.end_date) }}).
+  </div>
+  
+  <div *ngIf="!currentPhase" class="alert alert-secondary text-center rounded-4 shadow">
+    No active phase is currently ongoing.
+  </div>

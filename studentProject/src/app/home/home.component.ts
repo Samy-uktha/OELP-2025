@@ -1,29 +1,19 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import {
-  Pdf,
-  projApplication,
-  project,
-  Student,
-  preference,
-  facultypreference,
-} from '../interfaces';
+import {Pdf,projApplication,project,Student,preference,facultypreference,} from '../interfaces';
 import { StudentService } from '../student.service';
 import { CommonModule } from '@angular/common';
 import { ProjectService } from '../project.service';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ApplicationDataService } from '../application-data.service';
-import {
-  CdkDragDrop,
-  moveItemInArray,
-  DragDropModule,
-} from '@angular/cdk/drag-drop';
+import {CdkDragDrop,moveItemInArray,DragDropModule,} from '@angular/cdk/drag-drop';
+import { PhaseComponent } from '../phase/phase.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropModule],
+  imports: [CommonModule, FormsModule, DragDropModule, PhaseComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })
@@ -50,7 +40,35 @@ export class HomeComponent {
     };
   } = {};
 
-  isEditingPreferences = false; // Controls visibility of arrows
+  isEditingPreferences = false; 
+
+  currentPhase: any = null;
+  proposalPhase: boolean = false;
+  applicationPhase: boolean = false;
+  preferencesPhase: boolean = false;
+  allocationPhase: boolean = false;
+
+
+  onPhaseChanged(phase: any) {
+    this.currentPhase = phase;
+    console.log('Current Phase:', phase);
+    if (phase.phase_number == 1) {
+      this.proposalPhase = true
+    }
+    if (phase.phase_number == 2) {
+      this.applicationPhase = true
+    }
+    if (phase.phase_number == 3) {
+      this.preferencesPhase = true
+    }
+    if (phase.phase_number == 4) {
+      this.allocationPhase = true
+    }
+    else {
+
+    }
+  }
+
 
   toggleEditing() {
     if (this.isEditingPreferences) {
