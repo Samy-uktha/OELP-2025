@@ -969,7 +969,45 @@ app.get('/getAvailableSlots/:title', async (req, res) => {
   });
   
 
-
+// GET current phase dates
+app.get('/phase_dates', async (req, res) => {
+    try {
+      const result = await pool.query('SELECT * FROM phase_dates ORDER BY phase_number');
+      res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Error fetching phase dates');
+    }
+  });
+  
+  // POST to update all phase dates
+  app.post('/phase_dates', async (req, res) => {
+    const phases = req.body;
+  
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      for (const phase of phases) {
+        await client.query(
+          `INSERT INTO phase_dates (phase_number, start_date, end_date)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (phase_number)
+           DO UPDATE SET start_date = $2, end_date = $3`,
+          [phase.phase_number, phase.start_date, phase.end_date]
+        );
+      }
+      await client.query('COMMIT');
+      res.json({message: 'OK'});
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error(err);
+      res.status(500).send('Error saving phase dates');
+    } finally {
+      client.release();
+    }
+  });
+  
+  
 const server = http.createServer(app);
 
 // Start server
