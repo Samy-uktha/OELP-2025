@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
+import { Component, input, Input, OnInit, SimpleChanges } from '@angular/core';
 import { application, project } from '../models';
 import { CommonModule } from '@angular/common';
 import { ApplicationDataService } from '../application-data.service';
@@ -28,6 +28,9 @@ import {
 export class ApplicationComponent {
   @Input() projectselected: project = {} as project;
   @Input() faculty_id: number | undefined;
+  @Input() preferencesPhase: boolean = false;
+  @Input() allocationPhase: boolean = false;
+
   applications: application[] = [] as application[];
   allocations: application[] = [] as application[];
   selectedApplication: application = {} as application;

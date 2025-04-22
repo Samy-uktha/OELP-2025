@@ -1,4 +1,5 @@
 <div class="container-fluid mt-4">
+	<app-phase (phaseChanged)="onPhaseChanged($event)"></app-phase>
 	<div class="row">
   
 	  <!-- Sidebar Navigation -->
@@ -19,7 +20,7 @@
 			  </li>
   
 			  <!-- Applications Tab with Dropdown -->
-			  <li class="nav-item">
+			  <li class="nav-item" *ngIf="!proposalPhase">
 				<a class="nav-link"
 				   [class.active]="selectedTab === 'applications'"
 				   role="button"
@@ -69,10 +70,10 @@
   
 			<!-- Applications Section -->
 			<div *ngIf="selectedTab === 'applications'">
-			  <h2 class="mb-4 text-center text-secondary">Applications</h2>
+			  <h2 class="mb-4 text-center text-secondary">{{selectedApplication?.title}}</h2>
   
 			  <div *ngIf="selectedApplication">
-				<app-application [projectselected]="selectedApplication" [faculty_id]="faculty.faculty_id"></app-application>
+				<app-application [projectselected]="selectedApplication" [faculty_id]="faculty.faculty_id" [preferencesPhase]="preferencesPhase"></app-application>
 			  </div>
 			  <div *ngIf="!selectedApplication" class="text-center text-muted">
 				Select a project from the list.
