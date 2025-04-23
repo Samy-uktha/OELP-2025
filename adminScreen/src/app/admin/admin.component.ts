@@ -37,6 +37,13 @@ export class AdminComponent implements OnInit{
     console.log("phases are",this.phases)
   }
 
+  phaseDescriptions: { [key: number]: string } = {
+    1: 'Project Proposal Phase',
+    2: 'Student Application Phase',
+    3: 'Preferences Setting Phase',
+    4: 'Allocation Phase'
+  };
+
   trackByPhase(index: number, phase: any) {
     return phase.phase_number;
   }

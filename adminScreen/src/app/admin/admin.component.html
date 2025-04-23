@@ -10,7 +10,9 @@
           <div *ngFor="let phase of phases; let i = index; trackBy : trackByPhase" class="mb-4">
             <div class="row align-items-end">
               <div class="col-md-3">
-                <label class="form-label fw-bold">Phase {{ phase.phase_number }}</label>
+                <label class="form-label fw-bold">Phase {{ phase.phase_number }} </label>
+                <br> 
+                <div class="fw-bold text-primary">{{ phaseDescriptions[phase.phase_number] }}</div>
               </div>
               <div class="col-md-4">
                 <label class="form-label">Start Date</label>
