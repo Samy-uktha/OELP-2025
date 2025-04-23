@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './galeshapley-fac.component.css'
 })
 export class GaleshapleyFacComponent {
+  showdesc : boolean = false;
   studP: Preference[] = [];
   projP: Preference[] = [];
   projPref: { [key: string]: string[] } = {};
@@ -184,6 +185,10 @@ export class GaleshapleyFacComponent {
 
   prevStep() {
     if (this.currentStep > 0) this.currentStep--;
+  }
+
+  descshow(){
+    this.showdesc = !this.showdesc;
   }
   
 }

@@ -11,7 +11,7 @@ import { StudentProjectService } from '../student-project.service';
   styleUrl: './spa-lecturer.component.css'
 })
 export class SpaLecturerComponent implements OnInit{
-
+  showdesc : boolean = false;
   studP : Preference[]  = [] as Preference[];
   projP : Preference[]  = [] as Preference[];
 
@@ -215,6 +215,9 @@ buildStudentProjectMap(preferences: Preference[]): { [key: string]: string[] } {
     
       return Promise.all(slotRequests).then(() => {});
     }
-    
+
+    descshow(){
+      this.showdesc = !this.showdesc;
+    }
     
 }

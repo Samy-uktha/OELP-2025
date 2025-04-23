@@ -1,75 +1,97 @@
-<div class="container d-flex justify-content-center align-items-center vh-100">
-	<div class="card shadow-lg p-3" style="width: 400px">
-	  <div class="card-body">
-		<form #form="ngForm" (ngSubmit)="onSubmit(form)">
-		  <div class="mb-3">
-			<label for="name" class="form-label fw-semibold">User id</label>
-			<input
-			  type="number"
-			  class="form-control"
-			  id="name"
-			  [(ngModel)]="userid"
-			  name="userid"
-			  required
-			  #nameField="ngModel"
-			  placeholder="enter your user id"
-			/>
-			<div *ngIf="nameField.invalid && nameField.touched" class="text-danger small">
-			  User id is required.
-			</div>
-		  </div>
+<div class="container-fluid d-flex justify-content-center align-items-center vh-100 bg-gradient" style="background: linear-gradient(135deg, #6f42c1, #007bff);">
+	<div class="row w-100">
+		<div class="col-md-6 col-lg-4 mx-auto">
+			<div class="text-center mb-4">
+				<h4 class="text-primary fw-bold display-6">
+				  PROJECT ALLOCATION PORTAL
+				</h4>
+			  </div>
+	<div class="card shadow-lg rounded-4 border-0 p-4" style="width: 400px; backdrop-filter: blur(10px); background-color: rgba(255, 255, 255, 0.9);">
   
-		  <div class="mb-3">
-			<label for="password" class="form-label fw-semibold">Password</label>
-			<input
-			  type="text"
-			  class="form-control"
-			  id="roll"
-			  [(ngModel)]="password"
-			  name="roll"
-			  required
-			  minlength="8"
-			  maxlength="12"
-			  #rollNumberField="ngModel"
-			  placeholder="Enter your Password"
-			/>
-			<div *ngIf="rollNumberField.invalid && rollNumberField.touched" class="text-danger small">
-			  correct password please
-			</div>
-		  </div>
+	  <div class="text-center mb-3">
+		<h3 class="text-primary fw-bold">
+		  {{ isNewStudent ? 'Student Registration' : 'Student Login' }}
+		</h3>
+	  </div>
   
-		  <!-- Show CGPA field only if it's a new student -->
-		  <div class="mb-3" *ngIf="isNewStudent">
-			<label for="cgpa" class="form-label fw-semibold">CGPA</label>
-			<input
-			  type="number"
-			  class="form-control"
-			  id="cgpa"
-			  [(ngModel)]="cgpa"
-			  name="cgpa"
-			  required
-			  min="0"
-			  max="10"
-			  step="0.01"
-			  #cgpaField="ngModel"
-			  placeholder="Enter your CGPA"
-			/>
-			<div *ngIf="cgpaField.invalid && cgpaField.touched" class="text-danger small">
-			  CGPA is required (0-10 scale).
-			</div>
+	  <form #form="ngForm" (ngSubmit)="onSubmit(form)">
+		
+		<!-- User ID Field -->
+		<div class="form-floating mb-3">
+		  <input
+			type="number"
+			class="form-control rounded-3"
+			id="userid"
+			placeholder="User ID"
+			[(ngModel)]="userid"
+			name="userid"
+			required
+			#nameField="ngModel"
+		  />
+		  <label for="userid">User ID</label>
+		  <div *ngIf="nameField.invalid && nameField.touched" class="text-danger small">
+			User ID is required.
 		  </div>
-  
-		  <div class="text-center">
-			<button type="submit" class="btn btn-primary" [disabled]="form.invalid">
-			  {{ isNewStudent ? 'Register & Login' : 'Login' }}
-			</button>
-		  </div>
-		</form>
-  
-		<div class="text-danger text-center mt-2" *ngIf="errorMessage">
-		  {{ errorMessage }}
 		</div>
+  
+		<!-- Password Field -->
+		<div class="form-floating mb-3">
+		  <input
+			type="password"
+			class="form-control rounded-3"
+			id="password"
+			placeholder="Password"
+			[(ngModel)]="password"
+			name="roll"
+			required
+			minlength="8"
+			maxlength="12"
+			#rollNumberField="ngModel"
+		  />
+		  <label for="password">Password</label>
+		  <div *ngIf="rollNumberField.invalid && rollNumberField.touched" class="text-danger small">
+			Password must be 8–12 characters.
+		  </div>
+		</div>
+  
+		<!-- CGPA (Only if New Student) -->
+		<div class="form-floating mb-3" *ngIf="isNewStudent">
+		  <input
+			type="number"
+			class="form-control rounded-3"
+			id="cgpa"
+			placeholder="CGPA"
+			[(ngModel)]="cgpa"
+			name="cgpa"
+			required
+			min="0"
+			max="10"
+			step="0.01"
+			#cgpaField="ngModel"
+		  />
+		  <label for="cgpa">CGPA</label>
+		  <div *ngIf="cgpaField.invalid && cgpaField.touched" class="text-danger small">
+			CGPA must be between 0 and 10.
+		  </div>
+		</div>
+  
+		<!-- Submit Button -->
+		<div class="d-grid">
+		  <button type="submit" class="btn btn-gradient text-white fw-semibold rounded-pill py-2"
+			style="background: linear-gradient(to right, #6f42c1, #007bff);" 
+			[disabled]="form.invalid">
+			{{ isNewStudent ? 'Register & Login' : 'Login' }}
+		  </button>
+		</div>
+  
+	  </form>
+  
+	  <!-- Error Message -->
+	  <div class="text-danger text-center mt-3" *ngIf="errorMessage">
+		{{ errorMessage }}
 	  </div>
 	</div>
   </div>
+	</div>
+</div>
   

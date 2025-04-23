@@ -30,19 +30,19 @@
 
 			  <li class="nav-item">
 				<a class="nav-link" 
-				   [class.active]="selectedTab === 'Gale shapley -- student'" 
+				   [class.active]="selectedTab === 'Gale Shapley(Student proposing)'" 
 				   role="button" 
-				   (click)="selectTab('Gale shapley -- student')">
-				  <i class="bi bi-folder"></i> Gale shapley -- student
+				   (click)="selectTab('Gale Shapley(Student proposing)')">
+				  <i class="bi bi-folder"></i> Gale Shapley(Student proposing)
 				</a>
 			  </li>
 
 			  <li class="nav-item">
 				<a class="nav-link" 
-				   [class.active]="selectedTab === 'Gale shapley -- faculty'" 
+				   [class.active]="selectedTab === 'Gale Shapley(Faculty proposing)'" 
 				   role="button" 
-				   (click)="selectTab('Gale shapley -- faculty')">
-				  <i class="bi bi-folder"></i> Gale shapley -- faculty
+				   (click)="selectTab('Gale Shapley(Faculty proposing)')">
+				  <i class="bi bi-folder"></i> Gale Shapley(Faculty proposing)
 				</a>
 			  </li>
 
@@ -79,13 +79,13 @@
 				<app-spa-student></app-spa-student>
 			  </div>
 
-			  <div *ngIf="selectedTab === 'Gale shapley -- student'">
-				<h2 class="mb-4 text-center text-secondary">Gale shapley -- student</h2>
+			  <div *ngIf="selectedTab === 'Gale Shapley(Student proposing)'">
+				<h2 class="mb-4 text-center text-secondary">Gale Shapley(Student proposing)</h2>
 				<app-galeshapley-stud></app-galeshapley-stud>
 			  </div>
 
-			  <div *ngIf="selectedTab === 'Gale shapley -- faculty'">
-				<h2 class="mb-4 text-center text-secondary">Gale shapley -- faculty</h2>
+			  <div *ngIf="selectedTab === 'Gale Shapley(Faculty proposing)'">
+				<h2 class="mb-4 text-center text-secondary">Gale Shapley(Faculty proposing)</h2>
 				<app-galeshapley-fac></app-galeshapley-fac>
 			  </div>
 

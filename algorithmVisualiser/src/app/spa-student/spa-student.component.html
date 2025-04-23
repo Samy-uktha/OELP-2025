@@ -5,6 +5,39 @@
 <div class="container mt-4">
 	<h3 class="text-primary text-center mb-4">SPA Student-Proposing Visualizer</h3>
   
+	<div class="text-center mb-4">
+		<button class="btn btn-outline-info" (click)="descshow()">More about the algorithm</button>
+	  </div>
+	
+	  <div *ngIf="showdesc" class="alert alert-secondary">
+		<strong>Initialization:</strong><br>
+		&rarr; All students start free and unassigned.<br>
+		&rarr; Every project and lecturer is unsubscribed (no provisional assignments).<br><br>
+	
+		Initially all students are free, and all projects and lecturers are totally unsubscribed.
+		 As long as there is some student 𝑠𝑖 who is free and who has a non-empty preference list,
+		  𝑠𝑖 applies to the first project 𝑝𝑗 on his/her list. We let 𝑙𝑘 be the lecturer who offers 𝑝𝑗. 
+		  Immediately, 𝑠𝑖 becomes provisionally assigned to 𝑝𝑗 (and to 𝑙𝑘). <br> <br>
+
+		  If 𝑝𝑗 is over-subscribed, then the worst student 𝑠𝑟 assigned to 𝑝𝑗 is rejected. The pair 
+		  (𝑠𝑟,𝑝𝑗) will be deleted by the subsequent conditional that tests for 𝑝𝑗 being full. The pair (𝑠𝑟,𝑝𝑡) 
+		  will be deleted by either of the two subsequent conditionals, where 𝑝𝑡 was the project most recently assigned 𝑠𝑟.
+		  <br> <br>
+
+		  If the project is full (i.e., at capacity), the lecturer removes from the project's preference <br>
+		   list all students less preferred than the worst currently assigned student.
+
+		   <br> <br>
+		   The algorithm ends when every free student has an empty preference list (i.e. cannot propose any further)
+		    or all students have been provisionally assigned. The final matching is then the set of provisional assignments.
+			<br>
+			<br>
+
+			<strong>Outcome : Student optimal </strong>  allocations (i.e., it prioritises the student preferences over faculty)
+
+
+	  </div>
+
 	<div class="card shadow p-3 animate__animated animate__fadeIn">
 	  <div class="card-body">
 		<h5 class="card-title">Step {{ currentStep + 1 }} of {{ steps.length }}</h5>

@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
 })
 export class SpaStudentComponent {
 
-
+  showdesc : boolean = false;
   studP : Preference[]  = [] as Preference[];
     projP : Preference[]  = [] as Preference[];
   
@@ -306,5 +306,9 @@ export class SpaStudentComponent {
         );
       
         return Promise.all(slotRequests).then(() => {});
+      }
+
+      descshow(){
+        this.showdesc = ! this.showdesc;
       }
 }

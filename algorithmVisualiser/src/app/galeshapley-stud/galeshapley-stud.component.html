@@ -1,6 +1,42 @@
 <div class="container mt-4">
 	<h3 class="text-primary text-center mb-4">Gale Shapley Student-Proposing</h3>
-  
+	<div class="text-center mb-4">
+		<button class="btn btn-outline-info" (click)="descshow()">More about the algorithm</button>
+	  </div>
+	
+	  <div *ngIf="showdesc" class="alert alert-secondary">
+		<strong>Initialization:</strong><br>
+		&rarr; All students start free and unassigned.<br>
+		&rarr; Every project and lecturer is unsubscribed (no provisional assignments).<br><br>
+	
+		The algorithm iterates over each <strong>free student</strong>:
+		<ul>
+		  <li>Each student proposes to their highest ranked project, not yet rejected <br>
+			Projects go through all their assignments, keeping the higher preferred students.
+		</li>
+		  <li> Here there could be two cases : 
+			<ul>
+			  <li>The proposed projects |assigned| = available slots <br>
+				→ what is done here is, we go through all assignments of those projects<br>
+				 and get the least ranked student among them. <br>
+				 — If the lowest ranked student’s rank is higher than(as in number) <br>
+				 than the current student who proposed, the least student is removed from <br>
+				 the projects assigned list and the current student is added. The least ranked <br>
+				 student is added back to the free students list. The current student is removed from the free students list.
+				— If the student ranks lesser than the least ranked student, then the project is skipped. I.e, the student is rejected
+				</li>
+			  <li>The proposed project has space, then the student is accepted by the project. Thereby the size of project’s assigned increases by 1. 
+			</li>
+			</ul>
+		</li>
+		</ul>
+		This continues until : 
+				All students are assigned
+				Or all the projects in the preference list are exhausted 
+		<br>
+		Outcome  : <strong>Student-optimal</strong>: Each student gets the best project they can get in any stable matching. 
+		<br> Projects might get less-preferred students
+	  </div>
 	<div class="card shadow p-3 animate__animated animate__fadeIn">
 	  <div class="card-body">
 		<h5 class="card-title">Step {{ currentStep + 1 }} of {{ steps.length }}</h5>

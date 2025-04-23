@@ -4,6 +4,30 @@
 <!-- <p>visualiser works!</p> -->
 <div class="container mt-4">
 	<h3 class="text-primary text-center mb-4">SPA Lecturer-Proposing Visualizer</h3>
+	<div class="text-center mb-4">
+		<button class="btn btn-outline-info" (click)="descshow()">More about the algorithm</button>
+	  </div>
+	
+	  <div *ngIf="showdesc" class="alert alert-secondary">
+		<strong>Initialization:</strong><br>
+		&rarr; All students start free and unassigned.<br>
+		&rarr; Every project and lecturer is unsubscribed (no provisional assignments).<br><br>
+	
+		The algorithm iterates over each <strong>undersubscribed project</strong>:
+		<ul>
+		  <li>First student on its preference list is considered.</li>
+		  <li>If the student prefers this project, they are tentatively assigned.</li>
+		  <li>If the student was already assigned another project, but prefers the new one:
+			<ul>
+			  <li>Swap the assignments.</li>
+			  <li>The old project becomes unsubscribed (adds a free slot).</li>
+			</ul>
+		  </li>
+		  <li>All less preferred projects (successors) in the student's list are pruned (deleted).</li>
+		</ul>
+		The process continues until all projects are full or no valid pairs remain.<br>
+		The final match is the collection of all provisional assignments, which are <strong>lecturer-optimal.</strong>
+	  </div>
   
 	<div class="card shadow p-3 animate__animated animate__fadeIn">
 	  <div class="card-body">
