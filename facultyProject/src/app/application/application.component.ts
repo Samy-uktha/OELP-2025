@@ -28,6 +28,7 @@ import {
 export class ApplicationComponent {
   @Input() projectselected: project = {} as project;
   @Input() faculty_id: number | undefined;
+  @Input() applicationPhase: boolean = false;
   @Input() preferencesPhase: boolean = false;
   @Input() allocationPhase: boolean = false;
 

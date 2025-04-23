@@ -73,7 +73,7 @@
 			  <h2 class="mb-4 text-center text-secondary">{{selectedApplication?.title}}</h2>
   
 			  <div *ngIf="selectedApplication">
-				<app-application [projectselected]="selectedApplication" [faculty_id]="faculty.faculty_id" [preferencesPhase]="preferencesPhase"></app-application>
+				<app-application [projectselected]="selectedApplication" [faculty_id]="faculty.faculty_id" [preferencesPhase]="!applicationPhase"></app-application>
 			  </div>
 			  <div *ngIf="!selectedApplication" class="text-center text-muted">
 				Select a project from the list.
