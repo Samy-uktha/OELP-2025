@@ -8,13 +8,12 @@ import { ProfileComponent } from "../profile/profile.component";
 import { CommonModule } from '@angular/common';
 import { ProjectsService } from '../projects.service';
 import { application } from 'express';
-import { PreferenceComponent } from "../preference/preference.component";
 import { PhaseComponent } from '../phase/phase.component';
 
 @Component({
   selector: 'app-faculty-dashboard',
   standalone: true,
-  imports: [ApplicationComponent, ProjectComponent, ProfileComponent, CommonModule, PreferenceComponent, PhaseComponent],
+  imports: [ApplicationComponent, ProjectComponent, ProfileComponent, CommonModule, PhaseComponent],
   templateUrl: './faculty-dashboard.component.html',
   styleUrl: './faculty-dashboard.component.css'
 })
@@ -27,6 +26,7 @@ export class FacultyDashboardComponent {
   selectedApplication: project | undefined;
   projects : project[] = [] as project[];
   currentPhase: any = null;
+  
   proposalPhase: boolean = false;
   applicationPhase: boolean = false;
   preferencesPhase: boolean = false;

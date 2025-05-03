@@ -60,7 +60,7 @@
               </div>
 
               <!-- Allocations Section -->
-              <ng-container>
+              <ng-container *ngIf="!preferencesPhase && !applicationPhase">
                 <div class="card shadow-lg border-0 rounded-4 mt-4">
                   <div class="card-header bg-primary text-white text-center">
                     <h3 class="mb-0">Allocations</h3>
@@ -404,7 +404,7 @@
                       'Accepted'
                     )
                   "
-                  [disabled]="isUpdating || !preferencesPhase"
+                  [disabled]="isUpdating || (!allocationPhase)"
                 >
                   <i class="bi bi-check-circle"></i> Accept
                 </button>
@@ -417,7 +417,7 @@
                       'Rejected'
                     )
                   "
-                  [disabled]="isUpdating || !preferencesPhase"
+                  [disabled]="isUpdating || !allocationPhase"
                 >
                   <i class="bi bi-x-circle"></i> Reject
                 </button>

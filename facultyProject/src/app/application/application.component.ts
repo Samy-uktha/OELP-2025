@@ -28,6 +28,7 @@ import {
 export class ApplicationComponent {
   @Input() projectselected: project = {} as project;
   @Input() faculty_id: number | undefined;
+  proposalPhase: boolean = false;
   @Input() applicationPhase: boolean = false;
   @Input() preferencesPhase: boolean = false;
   @Input() allocationPhase: boolean = false;
@@ -63,6 +64,7 @@ export class ApplicationComponent {
   ) {}
 
   ngOnInit() {
+    console.log("phases are",this.applicationPhase, this.preferencesPhase, this.allocationPhase)
     setTimeout(() => {
       if (this.projectselected?.project_id) {
         this.fetchApplications();

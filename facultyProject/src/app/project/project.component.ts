@@ -15,6 +15,10 @@ import { AddProjectComponent } from "../add-project/add-project.component";
 })
 export class ProjectComponent {
   @Input() faculty!: faculty;
+  @Input() proposalPhase: boolean = false;
+  applicationPhase: boolean = false;
+  preferencesPhase: boolean = false;
+  allocationPhase: boolean = false;
 
 projects : project[] = [] as project[];
 

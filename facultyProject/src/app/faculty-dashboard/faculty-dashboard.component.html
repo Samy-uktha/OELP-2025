@@ -20,11 +20,12 @@
 			  </li>
   
 			  <!-- Applications Tab with Dropdown -->
-			  <li class="nav-item" *ngIf="!proposalPhase">
+			  <li class="nav-item">
 				<a class="nav-link"
 				   [class.active]="selectedTab === 'applications'"
 				   role="button"
-				   (click)="toggleApplications()">
+				   (click)="toggleApplications()"
+				   [class.disabled]="proposalPhase">
 				  <i class="bi bi-clipboard-check"></i> Applications
 				  <i [class.bi-chevron-down]="showDropdown" 
 					 [class.bi-chevron-right]="!showDropdown" 
@@ -65,7 +66,7 @@
 			<!-- Projects Section -->
 			<div *ngIf="selectedTab === 'projects'">
 			  <h2 class="mb-4 text-center text-secondary">Projects</h2>
-			  <app-project [faculty]="faculty"></app-project>
+			  <app-project [faculty]="faculty" [proposalPhase]="proposalPhase"></app-project>
 			</div>
   
 			<!-- Applications Section -->
@@ -73,7 +74,7 @@
 			  <h2 class="mb-4 text-center text-secondary">{{selectedApplication?.title}}</h2>
   
 			  <div *ngIf="selectedApplication">
-				<app-application [projectselected]="selectedApplication" [faculty_id]="faculty.faculty_id" [preferencesPhase]="!applicationPhase"></app-application>
+				<app-application [projectselected]="selectedApplication" [faculty_id]="faculty.faculty_id" [applicationPhase]="applicationPhase" [preferencesPhase]="preferencesPhase" [allocationPhase]="allocationPhase"></app-application>
 			  </div>
 			  <div *ngIf="!selectedApplication" class="text-center text-muted">
 				Select a project from the list.

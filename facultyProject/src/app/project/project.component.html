@@ -8,7 +8,7 @@
 			</div>
 			<div class="card-body bg-light p-4">
 			  <div class="mb-3 text-center">
-				<button class="btn btn-primary btn-sm mt-2" (click)="AddProj()">Add a new project</button>
+				<button class="btn btn-primary btn-sm mt-2" (click)="AddProj()" [disabled]="!proposalPhase">Add a new project</button>
 			  </div>
 			  <table class="table table-hover text-center align-middle">
 				<thead class="table-responsive table-bordered">
