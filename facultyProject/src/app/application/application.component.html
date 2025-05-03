@@ -301,44 +301,44 @@
         </div>
 
         <div *ngIf="showApp">
-          <div class="card shadow-lg border-0 rounded-4">
+          <div class="card shadow-lg border-0 rounded-4 mb-4"> 
             <!-- Card Header -->
-            <div class="card-header bg-primary text-white text-center">
+            <div class="card-header bg-primary text-white text-center py-3"> 
               <h3 class="mb-0">
-                <i class="bi bi-file-earmark-text"></i> Application #{{
+                <i class="bi bi-file-earmark-text me-2"></i> Application #{{
                   selectedApplication.application_id
                 }}
               </h3>
             </div>
-
+        
             <!-- Card Body -->
             <div class="card-body bg-light p-4">
               <!-- Application Information -->
               <div class="row mb-3">
-                <div class="col-md-6">
-                  <h5><i class="bi bi-person-fill"></i> Applicant Name:</h5>
-                  <p class="text-muted">{{ selectedApplication.name }}</p>
+                <div class="col-md-6 mb-3 mb-md-0">
+                  <h5 class="mb-1 fw-semibold"><i class="bi bi-person-fill me-1"></i> Applicant Name:</h5> 
+                  <p class="text-muted ps-1 mb-0">{{ selectedApplication.name }}</p> 
                 </div>
                 <div class="col-md-6">
-                  <h5><i class="bi bi-envelope-fill"></i> Roll Number:</h5>
-                  <p class="text-muted">{{ selectedApplication.roll_no }}</p>
+                  <h5 class="mb-1 fw-semibold"><i class="bi bi-envelope-fill me-1"></i> Roll Number:</h5> 
+                  <p class="text-muted ps-1 mb-0">{{ selectedApplication.roll_no }}</p> 
                 </div>
               </div>
-
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <h5><i class="bi bi-calendar"></i> Applied Date:</h5>
-                  <p class="text-muted">
-                    {{ selectedApplication.application_date | date }}
+        
+              <div class="row mb-4"> 
+                <div class="col-md-6 mb-3 mb-md-0">
+                  <h5 class="mb-1 fw-semibold"><i class="bi bi-calendar me-1"></i> Applied Date:</h5> 
+                  <p class="text-muted ps-1 mb-0">
+                    {{ selectedApplication.application_date | date: 'mediumDate' }} 
                   </p>
                 </div>
                 <div class="col-md-6">
-                  <h5><i class="bi bi-clipboard-check"></i> Status:</h5>
+                  <h5 class="mb-1 fw-semibold"><i class="bi bi-clipboard-check me-1"></i> Status:</h5> 
                   <span
-                    class="badge"
+                    class="badge fs-6 align-middle"
                     [ngClass]="{
                       'bg-success': selectedApplication.status === 'Accepted',
-                      'bg-warning': selectedApplication.status === 'Pending',
+                      'bg-warning text-dark': selectedApplication.status === 'Pending', 
                       'bg-danger': selectedApplication.status === 'Rejected'
                     }"
                   >
@@ -346,89 +346,99 @@
                   </span>
                 </div>
               </div>
-
+        
+              <!-- Divider -->
+              <hr class="my-4">
+        
               <!-- Additional Application Details -->
-              <div class="mb-3">
-                <h5><i class="bi bi-file-text"></i> Bio:</h5>
-                <p class="text-muted border p-3 rounded bg-white">
-                  {{ selectedApplication.bio }}
+              <div class="mb-4"> 
+                <h5 class="mb-2 fw-semibold"><i class="bi bi-file-text me-1"></i> Bio:</h5> 
+                <p class="text-muted border p-3 rounded bg-white shadow-sm"> 
+                  {{ selectedApplication.bio || 'N/A' }}
                 </p>
               </div>
-
-              <div class="mb-3">
-                <h5><i class="bi bi-folder"></i> Documents:</h5>
+        
+              <div class="mb-4"> 
+                <h5 class="mb-2 fw-semibold"><i class="bi bi-folder me-1"></i> Documents:</h5> 
                 <div
                   *ngIf="
                     selectedApplication.documents &&
                     selectedApplication.documents.length > 0
                   "
                 >
-                  <ul class="list-group">
+                  <ul class="list-group list-group-flush"> 
                     <li
-                      class="list-group-item d-flex justify-content-between align-items-center"
+                      class="list-group-item d-flex justify-content-between align-items-center px-1 py-2" 
                       *ngFor="let doc of selectedApplication.documents"
                     >
-                      <span
-                        ><i class="bi bi-file-earmark"></i>
+                      <span class="text-dark"
+                        ><i class="bi bi-file-earmark me-2"></i> 
                         {{ doc.doc_name }}</span
                       >
                       <a
                         [href]="doc.doc_url"
                         target="_blank"
-                        class="btn btn-sm btn-outline-primary"
+                        rel="noopener noreferrer" 
+                        class="btn btn-sm btn-outline-primary py-1" 
                       >
-                        <i class="bi bi-download"></i> View
+                        <i class="bi bi-box-arrow-up-right me-1"></i> View 
                       </a>
                     </li>
                   </ul>
                 </div>
                 <div
                   *ngIf="
-                    selectedApplication.documents &&
+                    !selectedApplication.documents || 
                     selectedApplication.documents.length === 0
                   "
-                  class="text-muted"
+                  class="text-muted fst-italic ps-1" 
                 >
-                  No documents uploaded.
+                  <i class="bi bi-info-circle me-1"></i> No documents uploaded. 
                 </div>
               </div>
-
+        
+              <!-- Divider -->
+              <hr class="my-4">
+        
               <!-- Action Buttons -->
               <div class="text-center">
-                <button
-                  class="btn btn-success me-2"
-                  *ngIf="selectedApplication.status === 'Pending'"
-                  (click)="
-                    updateApplicationStatus(
-                      selectedApplication.application_id,
-                      'Accepted'
-                    )
-                  "
-                  [disabled]="isUpdating || (!allocationPhase)"
-                >
-                  <i class="bi bi-check-circle"></i> Accept
-                </button>
-                <button
-                  class="btn btn-danger"
-                  *ngIf="selectedApplication.status === 'Pending'"
-                  (click)="
-                    updateApplicationStatus(
-                      selectedApplication.application_id,
-                      'Rejected'
-                    )
-                  "
-                  [disabled]="isUpdating || !allocationPhase"
-                >
-                  <i class="bi bi-x-circle"></i> Reject
+                <!-- Use ng-container for cleaner conditional logic DOM -->
+                <ng-container *ngIf="selectedApplication.status === 'Pending'">
+                  <button
+                    class="btn btn-success me-2 mb-2" 
+                    (click)="
+                      updateApplicationStatus(
+                        selectedApplication.application_id,
+                        'Accepted'
+                      )
+                    "
+                    [disabled]="isUpdating || !allocationPhase"
+                    type="button" 
+                  >
+                    <i class="bi bi-check-circle me-1"></i> Accept <!-- Icon space -->
+                  </button>
+                  <button
+                    class="btn btn-danger me-2 mb-2" 
+                    (click)="
+                      updateApplicationStatus(
+                        selectedApplication.application_id,
+                        'Rejected'
+                      )
+                    "
+                    [disabled]="isUpdating || !preferencesPhase"
+                    type="button" 
+                  >
+                    <i class="bi bi-x-circle me-1"></i> Reject <!-- Icon space -->
+                  </button>
+                </ng-container>
+        
+                <!-- Placed back button consistently, styled as secondary -->
+                <button class="btn btn-secondary mb-2" (click)="back()" type="button"> <!-- Add bottom margin -->
+                  <i class="bi bi-arrow-left-circle me-1"></i>Back <!-- Better icon, space -->
                 </button>
               </div>
-              <div class="text-center">
-                <button class="btn btn-primary me-2" (click)="back()">
-                  <i class="bi bi-check-circle"></i>Back
-                </button>
-              </div>
-            </div>
-          </div>
+            </div> <!-- End Card Body -->
+          </div> <!-- End Card -->
         </div>
 
         <div *ngIf="pref">

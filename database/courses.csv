@@ -1,11 +1,195 @@
 course_id,course_name,Course_code,Credits
-1,Data Structures,CS101,4
-2,Algorithms,CS102,4
-3,Database Systems,CS103,3
-4,Operating Systems,CS104,3
-5,Computer Networks,CS105,3
-6,Software Engineering,CS106,3
-7,Artificial Intelligence,CS107,4
-8,Machine Learning,CS108,4
-9,Web Development,CS109,3
-10,Cloud Computing,CS110,3
+1,Introduction to Programming,CS101,3
+2,Data Structures and Algorithms,CS201,4
+3,Discrete Mathematics,CS202,3
+4,Computer Organization & Architecture,CS203,4
+5,Operating Systems,CS301,4
+6,Database Management Systems,CS302,4
+7,Theory of Computation,CS303,3
+8,Computer Networks,CS304,4
+9,Design and Analysis of Algorithms,CS305,3
+10,Software Engineering,CS306,3
+11,Artificial Intelligence,CS401,3
+12,Machine Learning,CS402,3
+13,Compiler Design,CS403,4
+14,Computer Graphics,CS404,3
+15,Cryptography and Network Security,CS405,3
+16,Web Development,CS406,3
+17,Mobile Computing,CS407,3
+18,Distributed Systems,CS408,3
+19,Cloud Computing,CS409,3
+20,Natural Language Processing,CS410,3
+21,Data Mining and Warehousing,CS411,3
+22,Programming Lab I,CS191,2
+23,Data Structures Lab,CS291,2
+24,Operating Systems Lab,CS391,2
+25,Database Lab,CS392,1
+26,Networks Lab,CS394,1
+27,Machine Learning Lab,CS492,1
+28,Software Engineering Lab,CS396,1
+29,Compiler Lab,CS493,1
+30,Seminar/Minor Project CSE,CS498,2
+31,Engineering Mechanics,CE101,4
+32,Introduction to Civil Engineering,CE102,2
+33,Surveying and Geomatics,CE201,4
+34,Mechanics of Solids,CE202,4
+35,Fluid Mechanics,CE203,4
+36,Building Materials and Construction,CE204,3
+37,Structural Analysis I,CE301,4
+38,Geotechnical Engineering I,CE302,4
+39,Transportation Engineering I,CE303,4
+40,Water Resources Engineering,CE304,3
+41,Environmental Engineering I,CE305,3
+42,Design of Concrete Structures I,CE306,4
+43,Structural Analysis II,CE401,3
+44,Geotechnical Engineering II,CE402,3
+45,Transportation Engineering II,CE403,3
+46,Design of Steel Structures,CE404,4
+47,Construction Planning & Management,CE405,3
+48,Advanced Structural Mechanics,CE406,3
+49,Foundation Engineering,CE407,3
+50,Hydraulic Engineering,CE408,3
+51,Surveying Lab,CE291,1
+52,Fluid Mechanics Lab,CE293,1
+53,Geotechnical Lab I,CE392,1
+54,Transportation Lab I,CE393,1
+55,Environmental Lab I,CE395,1
+56,Concrete Lab,CE396,1
+57,Structural Engineering Lab,CE491,1
+58,CAD Lab (Civil),CE494,1
+59,Construction Materials Lab,CE294,1
+60,Seminar/Minor Project Civil,CE498,2
+61,Introduction to Electrical Engineering,EE101,3
+62,Basic Electronics,EE102,4
+63,Network Theory,EE201,4
+64,Digital Logic Design,EE202,4
+65,Signals and Systems,EE203,4
+66,Electromagnetic Theory,EE204,3
+67,Analog Circuits,EE301,4
+68,Microprocessors and Microcontrollers,EE302,4
+69,Control Systems,EE303,4
+70,Power Systems I,EE304,4
+71,Communication Systems I,EE305,3
+72,Digital Signal Processing,EE306,4
+73,Power Electronics,EE401,4
+74,VLSI Design,EE402,3
+75,Power Systems II,EE403,3
+76,Communication Systems II,EE404,3
+77,Instrumentation and Measurements,EE405,3
+78,Electric Drives,EE406,3
+79,Renewable Energy Systems,EE407,3
+80,Embedded Systems,EE408,3
+81,Basic Electronics Lab,EE192,1
+82,Digital Logic Lab,EE292,1
+83,Circuits and Systems Lab,EE293,1
+84,Analog Circuits Lab,EE391,1
+85,Microprocessor Lab,EE392,1
+86,Control Systems Lab,EE393,1
+87,Communication Lab I,EE395,1
+88,DSP Lab,EE396,1
+89,Power Electronics Lab,EE491,1
+90,Seminar/Minor Project EE,EE498,2
+91,Engineering Drawing,ME101,3
+92,Workshop Practice,ME102,2
+93,Thermodynamics I,ME201,4
+94,Engineering Materials,ME202,3
+95,Fluid Mechanics I,ME203,4
+96,Mechanics of Materials I,ME204,4
+97,Kinematics of Machinery,ME301,4
+98,Manufacturing Processes I,ME302,4
+99,Heat Transfer,ME303,4
+100,Machine Design I,ME304,4
+101,Dynamics of Machinery,ME305,3
+102,Thermodynamics II,ME306,3
+103,Fluid Mechanics II,ME401,3
+104,IC Engines and Gas Turbines,ME402,3
+105,Manufacturing Processes II,ME403,3
+106,Machine Design II,ME404,3
+107,CAD/CAM,ME405,3
+108,Refrigeration and Air Conditioning,ME406,3
+109,Robotics,ME407,3
+110,Finite Element Analysis,ME408,3
+111,Mechatronics,ME409,3
+112,Workshop Lab,ME192,1
+113,Fluid Mechanics Lab ME,ME293,1
+114,Strength of Materials Lab,ME294,1
+115,Kinematics Lab,ME391,1
+116,Manufacturing Lab I,ME392,1
+117,Heat Transfer Lab,ME393,1
+118,Machine Design Lab,ME394,1
+119,IC Engines Lab,ME492,1
+120,Seminar/Minor Project ME,ME498,2
+121,Intro to Data Science & AI,DS101,3
+122,Python for Data Science,DS102,3
+123,Linear Algebra for DS,DS201,4
+124,Probability & Statistics for DS,DS202,4
+125,Calculus for Data Science,DS203,3
+126,Data Structures for DS,DS204,3
+127,Foundations of Machine Learning,DS301,4
+128,Database Systems for DS,DS302,4
+129,Big Data Technologies,DS303,3
+130,Data Mining & Analysis,DS304,4
+131,Deep Learning Foundations,DS305,3
+132,Statistical Inference,DS306,3
+133,Advanced Machine Learning,DS401,3
+134,Natural Language Processing Tech,DS402,3
+135,Data Visualization,DS403,3
+136,Cloud Computing Platforms,DS404,3
+137,Reinforcement Learning,DS405,3
+138,Time Series Analysis,DS406,3
+139,Data Ethics and Privacy,DS407,2
+140,Optimization Techniques,DS408,3
+141,Python Lab,DS192,1
+142,Stats & Probability Lab,DS292,1
+143,Machine Learning Lab I,DS391,2
+144,Big Data Lab,DS393,1
+145,Deep Learning Lab,DS395,1
+146,Data Mining Lab,DS394,1
+147,NLP Lab,DS492,1
+148,Data Visualization Lab,DS493,1
+149,Capstone Project I,DS497,3
+150,Capstone Project II,DS499,3
+151,Advanced Computer Architecture,CS501,3
+152,High Performance Computing,CS502,3
+153,Quantum Computing Introduction,CS503,3
+154,Blockchain Technologies,CS504,3
+155,Advanced Database Systems,CS505,3
+156,Computational Geometry,CS506,3
+157,Bioinformatics Algorithms,CS507,3
+158,Formal Methods in Software Engg,CS508,3
+159,Advanced Foundation Engineering,CE501,3
+160,Earthquake Engineering,CE502,3
+161,Finite Element Methods in Civil Engg,CE503,3
+162,Pavement Design and Management,CE504,3
+163,Bridge Engineering,CE505,3
+164,Remote Sensing and GIS Applications,CE506,3
+165,Advanced Water Treatment,CE507,3
+166,Urban Transportation Planning,CE508,3
+167,Advanced Control Systems,EE501,3
+168,Smart Grid Technologies,EE502,3
+169,Advanced Digital Signal Processing,EE503,3
+170,RF and Microwave Engineering,EE504,3
+171,Optical Communication Systems,EE505,3
+172,Biomedical Instrumentation,EE506,3
+173,Advanced Power Electronics,EE507,3
+174,Nanoelectronics,EE508,3
+175,Advanced Fluid Dynamics,ME501,3
+176,Computational Fluid Dynamics,ME502,3
+177,Advanced Manufacturing Processes,ME503,3
+178,Fracture Mechanics,ME504,3
+179,Automobile Engineering,ME505,3
+180,Turbomachinery,ME506,3
+181,Vibrations and Noise Control,ME507,3
+182,Industrial Robotics,ME508,3
+183,Bayesian Data Analysis,DS501,3
+184,Advanced Topics in Deep Learning,DS502,3
+185,Big Data Analytics Platforms,DS503,3
+186,Causal Inference,DS504,3
+187,Computer Vision Applications,DS505,3
+188,AI Ethics and Society,DS506,2
+189,Bioinformatics Data Analysis,DS507,3
+190,Explainable AI (XAI),DS508,3
+191,Humanities Elective I,HS101,3
+192,Economics I,HS102,3
+193,Professional Communication,HS201,2
+194,Management Principles,MG301,3

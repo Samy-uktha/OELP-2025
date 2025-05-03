@@ -11,9 +11,9 @@
 			<ul class="nav flex-column nav-pills">
 			  <!-- Projects Tab -->
 			  <li class="nav-item">
-				<a class="nav-link" 
-				   [class.active]="selectedTab === 'projects'" 
-				   role="button" 
+				<a class="nav-link"
+				   [class.active]="selectedTab === 'projects'"
+				   role="button"
 				   (click)="selectTab('projects')">
 				  <i class="bi bi-folder"></i> Projects
 				</a>
@@ -27,8 +27,8 @@
 				   (click)="toggleApplications()"
 				   [class.disabled]="proposalPhase">
 				  <i class="bi bi-clipboard-check"></i> Applications
-				  <i [class.bi-chevron-down]="showDropdown" 
-					 [class.bi-chevron-right]="!showDropdown" 
+				  <i [class.bi-chevron-down]="showDropdown"
+					 [class.bi-chevron-right]="!showDropdown"
 					 class="bi"></i>
 				</a>
   
@@ -45,13 +45,23 @@
   
 			  <!-- Profile Tab -->
 			  <li class="nav-item">
-				<a class="nav-link" 
-				   [class.active]="selectedTab === 'profile'" 
-				   role="button" 
+				<a class="nav-link"
+				   [class.active]="selectedTab === 'profile'"
+				   role="button"
 				   (click)="selectTab('profile')">
 				  <i class="bi bi-person-circle"></i> Profile
 				</a>
 			  </li>
+
+              <!-- Logout Button -->
+              <li class="nav-item mt-2">  
+                <a class="nav-link text-danger" 
+                   role="button" 
+                   (click)="logout()">
+                  <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+              </li>
+              
 			</ul>
   
 		  </div>
@@ -93,4 +103,3 @@
   
 	</div>
   </div>
-  
