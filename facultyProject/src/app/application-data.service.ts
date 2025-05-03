@@ -117,7 +117,7 @@ export class ApplicationDataService {
     }
 
     getAllocations_SPAstudent(id : number): Observable<application[]>{
-      return this.http.get<application[]>(`${this.apiUrl_alloc_SPAlecturer}/${id}`).pipe(
+      return this.http.get<application[]>(`${this.apiUrl_alloc_SPAstudent}/${id}`).pipe(
         map((data: any[]) =>
           data.map((application) => ({
             application_id : application.application_id,

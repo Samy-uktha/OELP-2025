@@ -67,6 +67,7 @@ export class ApplicationComponent {
       if (this.projectselected?.project_id) {
         this.fetchApplications();
         this.fetchAllocations();
+        this.showApp = false;
         // this.fetchBostonAllocations();
       }
     }, 100);
@@ -77,6 +78,7 @@ export class ApplicationComponent {
       if (changes['projectselected'] && this.projectselected?.project_id) {
         this.fetchApplications();
         this.fetchAllocations();
+        this.showApp = false;
         // this.fetchBostonAllocations();s
       }
     }, 100);

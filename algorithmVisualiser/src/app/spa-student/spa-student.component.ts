@@ -15,6 +15,7 @@ export class SpaStudentComponent {
   showdesc : boolean = false;
   studP : Preference[]  = [] as Preference[];
     projP : Preference[]  = [] as Preference[];
+    isLoading = true;
   
     projPref :  { [key: string]: string[] } = {};
     studPref : { [key: string]: string[] } = {};
@@ -36,6 +37,7 @@ export class SpaStudentComponent {
   
   
       ngOnInit() {
+        this.isLoading=true;
         this.service.getStudpref().subscribe({
           next: (AppData) => {
             this.studP = AppData || [];
@@ -55,6 +57,7 @@ export class SpaStudentComponent {
             const projectTitles = Object.keys(this.projPref);
       
             await this.fetchAllProjectSlots(projectTitles); // Wait for all slots to be fetched
+            this.isLoading = false;
             this.tryRunSPA() ; // Attempt to run once all data is in
           },
           error: (error) => {
@@ -156,75 +159,272 @@ export class SpaStudentComponent {
     //   return projectAssignments;
     
     // }
-    runStudentSPA() {
-      const remainingStudentPref = JSON.parse(JSON.stringify(this.studPref));
-      let freeStudents = new Set(Object.keys(this.studPref));
+    // runStudentSPA() {
+    //   const remainingStudentPref = JSON.parse(JSON.stringify(this.studPref));
+    //   let freeStudents = new Set(Object.keys(this.studPref));
   
-      let stepsCount = 0;
-      const maxSteps = 1000;
+    //   let stepsCount = 0;
+    //   const maxSteps = 1000;
   
-      while (freeStudents.size > 0 && stepsCount++ < maxSteps) {
-        for (let student of Array.from(freeStudents)) {
-          const prefs = remainingStudentPref[student];
-          if (!prefs || prefs.length === 0) {
-            freeStudents.delete(student);
-            continue;
-          }
+    //   while (freeStudents.size > 0 && stepsCount++ < maxSteps) {
+    //     for (let student of Array.from(freeStudents)) {
+    //       const prefs = remainingStudentPref[student];
+    //       if (!prefs || prefs.length === 0) {
+    //         freeStudents.delete(student);
+    //         continue;
+    //       }
   
-          const project = prefs[0];
-          let message = `Student ${student} applies to Project ${project}. `;
+    //       const project = prefs[0];
+    //       let message = `Student ${student} applies to Project ${project}. `;
   
-          if (!this.projPref[project] || !this.projPref[project].includes(student)) {
-            message += `Proposal rejected (not in project's preference).`;
-            this.steps.push({
-              message,
-              assignments: JSON.parse(JSON.stringify(this.projectAssignments)),
-              studentPref: JSON.parse(JSON.stringify(remainingStudentPref)),
-              projectState: JSON.parse(JSON.stringify(this.pData))
-            });
-            continue;
-          }
+    //       if (!this.projPref[project] || !this.projPref[project].includes(student)) {
+    //         message += `Proposal rejected (not in project's preference).`;
+    //         this.steps.push({
+    //           message,
+    //           assignments: JSON.parse(JSON.stringify(this.projectAssignments)),
+    //           studentPref: JSON.parse(JSON.stringify(remainingStudentPref)),
+    //           projectState: JSON.parse(JSON.stringify(this.pData))
+    //         });
+    //         continue;
+    //       }
   
-          if (this.pData[project].assigned.length < this.pData[project].capacity) {
-            if (!this.projectAssignments[project]) {
-              this.projectAssignments[project] = [];
-            }
-            this.projectAssignments[project].push(student);
-            this.pData[project].assigned.push(student);
-            freeStudents.delete(student);
-            message += `Accepted.`;
-          } else {
-            let assigned = this.pData[project].assigned;
-            let facultyPref = this.projPref[project] || [];
-            let worstStudent = assigned.reduce((worst, s) => {
-              let worstIndex = facultyPref.indexOf(worst);
-              let sIndex = facultyPref.indexOf(s);
-              return sIndex > worstIndex ? s : worst;
-            }, assigned[0]);
+    //       if (this.pData[project].assigned.length < this.pData[project].capacity) {
+    //         if (!this.projectAssignments[project]) {
+    //           this.projectAssignments[project] = [];
+    //         }
+    //         this.projectAssignments[project].push(student);
+    //         this.pData[project].assigned.push(student);
+    //         freeStudents.delete(student);
+    //         message += `Accepted.`;
+    //       } else {
+    //         let assigned = this.pData[project].assigned;
+    //         let facultyPref = this.projPref[project] || [];
+    //         let worstStudent = assigned.reduce((worst, s) => {
+    //           let worstIndex = facultyPref.indexOf(worst);
+    //           let sIndex = facultyPref.indexOf(s);
+    //           return sIndex > worstIndex ? s : worst;
+    //         }, assigned[0]);
   
-            if (facultyPref.indexOf(student) < facultyPref.indexOf(worstStudent)) {
-              this.pData[project].assigned = assigned.filter(s => s !== worstStudent);
-              this.pData[project].assigned.push(student);
-              freeStudents.delete(student);
-              freeStudents.add(worstStudent);
-              message += `Accepted, replaced worse student ${worstStudent}.`;
-            } else {
-              message += `Rejected due to lower preference.`;
-            }
-          }
+    //         if (facultyPref.indexOf(student) < facultyPref.indexOf(worstStudent)) {
+    //           this.pData[project].assigned = assigned.filter(s => s !== worstStudent);
+    //           this.pData[project].assigned.push(student);
+    //           freeStudents.delete(student);
+    //           freeStudents.add(worstStudent);
+    //           message += `Accepted, replaced worse student ${worstStudent}.`;
+    //         } else {
+    //           message += `Rejected due to lower preference.`;
+    //         }
+    //       }
   
-          // Remove this project from student's pref after applying
-          remainingStudentPref[student] = prefs.filter((pid: string) => pid !== project);
+    //       // Remove this project from student's pref after applying
+    //       remainingStudentPref[student] = prefs.filter((pid: string) => pid !== project);
   
-          this.steps.push({
-            message,
-            assignments: JSON.parse(JSON.stringify(this.projectAssignments)),
-            studentPref: JSON.parse(JSON.stringify(remainingStudentPref)),
-            projectState: JSON.parse(JSON.stringify(this.pData))
-          });
+    //       this.steps.push({
+    //         message,
+    //         assignments: JSON.parse(JSON.stringify(this.projectAssignments)),
+    //         studentPref: JSON.parse(JSON.stringify(remainingStudentPref)),
+    //         projectState: JSON.parse(JSON.stringify(this.pData))
+    //       });
+    //     }
+    //   }
+    // }
+
+
+
+runStudentSPA() {
+    // --- Initialization ---
+    const originalStudPref = this.studPref;
+    const studentProposalIndex: { [studentId: string]: number } = {};
+    Object.keys(originalStudPref).forEach(student => {
+        studentProposalIndex[student] = 0;
+    });
+
+    let freeStudents = new Set<string>(Object.keys(originalStudPref));
+
+    // Maintain the student -> project assignment mapping dynamically
+    // Initialize all students as unassigned (null)
+    const currentStudentAssignments: { [studentId: string]: number | null } = {};
+     Object.keys(originalStudPref).forEach(student => {
+        currentStudentAssignments[student] = null;
+    });
+
+
+    // Reset project assignments in pData if necessary
+    for (const pid in this.pData) {
+        if (!this.pData[pid].assigned) {
+            this.pData[pid].assigned = [];
+        } else {
+            // Clear assignments from previous runs if needed
+            this.pData[pid].assigned = [];
         }
-      }
     }
+
+    this.steps = []; // Clear previous steps
+
+    let stepsCount = 0;
+    const maxSteps = Object.keys(originalStudPref).length * 100; // Adjust maxSteps
+
+    // --- Main Algorithm Loop ---
+    while (freeStudents.size > 0 && stepsCount++ < maxSteps) {
+        const student = Array.from(freeStudents)[0]; // Get ONE free student
+
+        const prefs = originalStudPref[student] || [];
+        const proposalIndex = studentProposalIndex[student];
+
+        if (proposalIndex >= prefs.length) {
+            freeStudents.delete(student);
+            const message = `Student ${student} has no more projects to propose to. Becomes inactive.`;
+            // Record final state for this student's exit
+            this.steps.push(this.createStepState(
+                message,
+                currentStudentAssignments,
+                originalStudPref,
+                this.pData
+            ));
+            continue;
+        }
+
+        const projectStringId = prefs[proposalIndex]; // Project ID is likely a string from prefs
+        const projectNumId = Number(projectStringId); // Convert to number if needed for assignments map
+        let message = `Student ${student} (next pref #${proposalIndex + 1}: P${projectStringId}) proposes to Project ${projectStringId}. `;
+
+        const currentProjectData = this.pData[projectStringId];
+        const facultyPref = this.projPref[projectStringId] || [];
+
+        // --- Project Decision ---
+        if (!currentProjectData) {
+            message += `Project ${projectStringId} does not exist. Proposal ignored.`;
+            studentProposalIndex[student]++; // Try next preference
+        } else if (currentProjectData.assigned.length < currentProjectData.capacity) {
+            // Case 1: Project has space
+            message += `Project ${projectStringId} has space (${currentProjectData.assigned.length}/${currentProjectData.capacity}). Accepted.`;
+
+            const previousAssignmentProjectId = currentStudentAssignments[student];
+            // If student was previously assigned, remove from old project
+            if (previousAssignmentProjectId !== null) {
+                const oldProjectStringId = String(previousAssignmentProjectId); // Ensure string key
+                if (this.pData[oldProjectStringId]) {
+                     this.pData[oldProjectStringId].assigned = this.pData[oldProjectStringId].assigned.filter(s => s !== student);
+                      message += ` (Previously assigned to P${oldProjectStringId}).`;
+                }
+            }
+
+            // Assign student to project
+            currentProjectData.assigned.push(student);
+            currentStudentAssignments[student] = projectNumId; // Store numeric project ID
+            freeStudents.delete(student);
+            studentProposalIndex[student]++; // Advance index AFTER action
+
+        } else {
+            // Case 2: Project is full
+            message += `Project ${projectStringId} is full (${currentProjectData.assigned.length}/${currentProjectData.capacity}). Comparing preferences. `;
+
+            let worstStudent: string | null = null;
+            let worstRank = -Infinity;
+            for (const assignedStudent of currentProjectData.assigned) {
+                const rankIndex = facultyPref.indexOf(assignedStudent);
+                const effectiveRank = (rankIndex === -1) ? Infinity : rankIndex;
+                if (effectiveRank >= worstRank) {
+                    if (effectiveRank > worstRank || worstStudent === null) {
+                        worstRank = effectiveRank;
+                        worstStudent = assignedStudent;
+                    }
+                }
+            }
+
+            const proposerRankIndex = facultyPref.indexOf(student);
+            const effectiveProposerRank = (proposerRankIndex === -1) ? Infinity : proposerRankIndex;
+
+            message += `Worst assigned is ${worstStudent ?? 'N/A'} (Rank index ${worstRank === Infinity ? 'Inf' : worstRank}). Proposer ${student} rank index ${effectiveProposerRank === Infinity ? 'Inf' : effectiveProposerRank}. `;
+
+            if (worstStudent !== null && effectiveProposerRank < worstRank) {
+                message += `Project ${projectStringId} prefers proposer ${student}. Accepted, replaces ${worstStudent}.`;
+
+                // Reject the worst student
+                currentProjectData.assigned = currentProjectData.assigned.filter(s => s !== worstStudent);
+                currentStudentAssignments[worstStudent] = null; // Make worst student unassigned
+                freeStudents.add(worstStudent);
+
+                // Accept the proposing student (check previous assignment)
+                const previousAssignmentProjectId = currentStudentAssignments[student];
+                if (previousAssignmentProjectId !== null) {
+                     const oldProjectStringId = String(previousAssignmentProjectId);
+                     if (this.pData[oldProjectStringId]) {
+                         this.pData[oldProjectStringId].assigned = this.pData[oldProjectStringId].assigned.filter(s => s !== student);
+                          message += ` (Proposer previously assigned to P${oldProjectStringId}).`;
+                     }
+                }
+                currentProjectData.assigned.push(student);
+                currentStudentAssignments[student] = projectNumId;
+                freeStudents.delete(student);
+                studentProposalIndex[student]++; // Advance index AFTER action
+
+            } else {
+                // Project rejects proposer
+                message += `Project ${projectStringId} rejects proposer ${student}.`;
+                studentProposalIndex[student]++; // Advance index AFTER action
+            }
+        }
+
+        // --- Record Step based on StepState interface ---
+        this.steps.push(this.createStepState(
+            message,
+            currentStudentAssignments,
+            originalStudPref,
+            this.pData
+        ));
+
+    } // End while loop
+
+    if (stepsCount >= maxSteps) {
+        console.error("SPA_student visualisation reached maximum steps.");
+        this.steps.push(this.createStepState(
+            "Maximum steps reached. Algorithm terminated.",
+            currentStudentAssignments,
+            originalStudPref,
+            this.pData,
+            true // Mark as error/final if needed
+        ));
+    } else {
+        this.steps.push(this.createStepState(
+             "Algorithm finished. All students processed or inactive.",
+             currentStudentAssignments,
+             originalStudPref,
+             this.pData,
+             true // Mark as final
+        ));
+    }
+    console.log("Visualisation Complete. Steps generated:", this.steps.length);
+}
+
+// Helper function to create a StepState object with deep copies
+createStepState(
+    message: string,
+    currentAssignments: { [key: string]: number | null },
+    originalStudPref: { [key: string]: string[] },
+    projectData: { [key: string]: { assigned: string[]; capacity: number } },
+    isFinalOrError: boolean = false // Optional flag for terminal states
+): StepState {
+    // Filter out null assignments for the final StepState assignments field
+    const finalAssignments: { [key: string]: number } = {};
+    for (const studentId in currentAssignments) {
+        if (currentAssignments[studentId] !== null) {
+            finalAssignments[studentId] = currentAssignments[studentId] as number;
+        }
+    }
+
+    return {
+        message: message,
+        // Create the student_id -> project_id map (filtering out nulls)
+        assignments: JSON.parse(JSON.stringify(finalAssignments)),
+        // Use the original, unmodified student preferences
+        studentPref: JSON.parse(JSON.stringify(originalStudPref)),
+        // Provide the current state of projects
+        projectState: JSON.parse(JSON.stringify(projectData)),
+        // Add final/error flags if needed by the StepState interface or your frontend
+        // ...(isFinalOrError ? { final: true } : {}),
+    };
+}
     
       nextStep() {
         if (this.currentStep < this.steps.length - 1) this.currentStep++;

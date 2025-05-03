@@ -471,4 +471,20 @@ export class HomeComponent {
         return 'badge bg-secondary';
     }
   }
+
+  logout(): void {
+    const confirmation = window.confirm("Are you sure you want to log out?");
+    if (confirmation) {
+      console.log('Logout confirmed. Proceeding with logout...');
+      // 1. Perform actual logout logic (clear tokens, call backend, etc.)
+      localStorage.removeItem('authToken'); // Example: Replace 'authToken'
+      sessionStorage.clear(); // Example
+      // this.authService.logout(); // Example if using a service
+
+      // 2. Redirect to the login page
+      this.router.navigate(['/login']); // **Ensure '/login' is your correct login route**
+    } else {
+      console.log('Logout cancelled by user.');
+    }
+  }
 }

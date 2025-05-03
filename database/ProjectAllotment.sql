@@ -17,7 +17,7 @@ Department_id INTEGER,
 year integer NOT NULL,
 Cgpa decimal(2,2) NOT NULL,
 CONSTRAINT check_cgpa CHECK(cgpa >= 0 and cgpa <= 10),
-CONSTRAINT check_year CHECK(year >= 1 and year <= 8),
+CONSTRAINT check_year CHECK(year >= 1 and year <= 5),
 CONSTRAINT fk_dept FOREIGN KEY (Department_id) REFERENCES Department(dept_id)
 );
 
@@ -432,3 +432,41 @@ ALTER TABLE faculty_preferences
 ADD constraint  fk_application FOREIGN KEY (student_id, project_id)
         REFERENCES project_applications(Student_id, Project_id)
         ON DELETE CASCADE;
+
+--- to add data in csv file to respective tables
+
+-- \copy students(Roll_no,FirstName,LastName,email,Phone_no,Department_id,year,Cgpa) 
+-- FROM '/Users/abhiramiriyer/Documents/oelp--pal/OELP-2025/database/students.csv' 
+-- WITH (FORMAT CSV, HEADER TRUE, DELIMITER ',');
+
+-- \copy users(user_id,password,user_type,student_id,faculty_id) 
+-- FROM '/Users/abhiramiriyer/Documents/oelp--pal/OELP-2025/database/users.csv' 
+-- WITH (FORMAT CSV, HEADER TRUE, DELIMITER ',');
+
+-- \copy department(dept_id,dept_name) 
+-- FROM '/Users/abhiramiriyer/Documents/oelp--pal/OELP-2025/database/departments.csv' 
+-- WITH (FORMAT CSV, HEADER TRUE, DELIMITER ',');
+
+
+-- \copy faculty(faculty_id,firstName,lastName,email,Phone_no,Department_id) 
+-- FROM '/Users/abhiramiriyer/Documents/oelp--pal/OELP-2025/database/faculty.csv' 
+-- WITH (FORMAT CSV, HEADER TRUE, DELIMITER ',');
+
+
+-- \copy courses(course_id,course_name,Course_code,Credits) 
+-- FROM '/Users/abhiramiriyer/Documents/oelp--pal/OELP-2025/database/courses.csv' 
+-- WITH (FORMAT CSV, HEADER TRUE, DELIMITER ',');
+
+
+-- \copy student_courses(Student_id,Course_id,Grade) 
+-- FROM '/Users/abhiramiriyer/Documents/oelp--pal/OELP-2025/database/student_courses.csv' 
+-- WITH (FORMAT CSV, HEADER TRUE, DELIMITER ',');
+
+--- to create the dump file of the database in the system
+-- pg_dump -U postgres -h localhost -p 5432 -d ProjectAllotment --no-owner --no-privileges -F p > projectAllotment.sql
+
+-- to restore the dump into the particular file : 
+-- psql "postgresql://postgres_pal:i4msCXk2lL9Kqz2MPRkhx8BRmqkcvqJH@dpg-d08k91pr0fns73a11q1g-a.oregon-postgres.render.com:5432/project_allotment_ogqm?sslmode=require" < projectAllotment.sql
+
+-- to open the databse in the terminal  : 
+-- psql "postgresql://postgres_pal:i4msCXk2lL9Kqz2MPRkhx8BRmqkcvqJH@dpg-d08k91pr0fns73a11q1g-a.oregon-postgres.render.com:5432/project_allotment_ogqm?sslmode=require" < projectAllotment.sql

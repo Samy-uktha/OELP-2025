@@ -1,34 +1,41 @@
-<div class="container-fluid d-flex justify-content-center align-items-center vh-100 bg-gradient" style="background: linear-gradient(135deg, #6f42c1, #007bff);">
+<div class="container-fluid bg-light py-5"> <!-- Changed background, added padding -->
 	<div class="row w-100">
 	  <div class="col-md-6 col-lg-4 mx-auto">
   
 		<!-- Portal Header -->
 		<div class="text-center mb-4">
-		  <h4 class="text-primary fw-bold display-6">
+		  <!-- Used h2 for slightly less prominence, text-dark for formality -->
+		  <h2 class="text-dark fw-bold">
 			PROJECT ALLOCATION PORTAL
-		  </h4>
+		  </h2>
 		</div>
   
-		<!-- Glassmorphic Login Card -->
-		<div class="card shadow-lg border-0 rounded-4 p-4" style="backdrop-filter: blur(10px); background-color: rgba(255, 255, 255, 0.85);">
-		  <div class="card-header text-center border-0 bg-transparent mb-3">
-			<h3 class="fw-bold text-primary mb-0">Faculty Login</h3>
+		<!-- Standard Login Card -->
+		<!-- Removed glassmorphism, used standard shadow, less rounding, solid background -->
+		<div class="card shadow border rounded-3 p-4 bg-white">
+		  <!-- Added border-bottom, text-start alignment, darker text -->
+		  <div class="card-header text-start border-bottom bg-transparent pb-3 mb-3">
+			<h4 class="fw-semibold text-dark mb-0">Faculty Login</h4>
 		  </div>
   
-		  <div class="card-body">
+		  <div class="card-body pt-2"> <!-- Reduced top padding slightly -->
 			<form (ngSubmit)="onSubmit()" [formGroup]="loginForm">
   
 			  <!-- User ID Input -->
 			  <div class="form-floating mb-3">
 				<input
 				  type="number"
-				  class="form-control rounded-3"
+				  class="form-control rounded-3" 
 				  id="user_id"
 				  placeholder="User ID"
 				  required
 				  formControlName="userId"
 				/>
 				<label for="user_id">User ID</label>
+				<!-- Optional: Add validation message area -->
+				<!-- <div *ngIf="loginForm.get('userId')?.invalid && (loginForm.get('userId')?.dirty || loginForm.get('userId')?.touched)" class="text-danger small mt-1">
+				  User ID is required.
+				</div> -->
 			  </div>
   
 			  <!-- Password Input -->
@@ -42,14 +49,18 @@
 				  formControlName="password"
 				/>
 				<label for="password">Password</label>
+				 <!-- Optional: Add validation message area -->
+				<!-- <div *ngIf="loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty || loginForm.get('password')?.touched)" class="text-danger small mt-1">
+				  Password is required.
+				</div> -->
 			  </div>
   
 			  <!-- Submit Button -->
 			  <div class="d-grid">
+				<!-- Changed to standard btn-primary, moderate rounding -->
 				<button
 				  type="submit"
-				  class="btn btn-gradient text-white fw-semibold rounded-pill py-2"
-				  style="background: linear-gradient(to right, #6f42c1, #007bff);"
+				  class="btn btn-primary fw-semibold rounded-3 py-2"
 				  [disabled]="loginForm.invalid"
 				>
 				  Login
@@ -60,7 +71,11 @@
 		  </div>
 		</div>
   
+		<!-- Optional: Footer text -->
+		<div class="text-center text-muted mt-4 small">
+		   © {{2025}} IIT Palakkad. All rights reserved.
+		</div>
+  
 	  </div>
 	</div>
   </div>
-  

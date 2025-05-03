@@ -121,6 +121,27 @@ export class FacultyDashboardComponent {
     this.showDropdown = false;
   }
 
+
+  logout(): void {
+    // Ask for confirmation using the browser's confirm dialog
+    const confirmation = window.confirm("Are you sure you want to log out?");
+
+    // Proceed only if the user clicked "OK" (confirmation is true)
+    if (confirmation) {
+      console.log('Logout confirmed. Proceeding with logout...');
+
+      // Example clearing local storage directly (use with caution, prefer AuthService)
+      localStorage.removeItem('authToken'); // Replace 'authToken' with your actual token key
+      sessionStorage.clear(); // Or clear sessionStorage if used
+
+      // 2. Redirect to the login page
+      this.router.navigate(['/login']);
+
+    } else {
+      // User clicked "Cancel", do nothing
+      console.log('Logout cancelled by user.');
+    }
+  }
     }
   
 

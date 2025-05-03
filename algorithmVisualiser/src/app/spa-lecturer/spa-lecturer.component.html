@@ -29,36 +29,73 @@
 		The final match is the collection of all provisional assignments, which are <strong>lecturer-optimal.</strong>
 	  </div>
   
-	<div class="card shadow p-3 animate__animated animate__fadeIn">
-	  <div class="card-body">
-		<h5 class="card-title">Step {{ currentStep + 1 }} of {{ steps.length }}</h5>
-		<p class="card-text text-info">{{ steps[currentStep].message }}</p>
-  
-		<div class="row">
-		  <div class="col-md-6">
-			<h6>Student Assignments</h6>
-			<ul class="list-group">
-				<li class="list-group-item" *ngFor="let sid of objectKeys(steps[currentStep]?.assignments)">
-				Student {{ sid }} → Project {{ steps[currentStep].assignments[sid] }}
-			  </li>
-			</ul>
-		  </div>
-  
-		  <div class="col-md-6">
-			<h6>Project Status</h6>
-			<ul class="list-group">
-			  <li class="list-group-item" *ngFor="let pid of objectKeys(steps[currentStep]?.projectState)">
-				Project {{ pid }} [Cap: {{ steps[currentStep].projectState[pid].capacity }}]<br>
-				Assigned: {{ steps[currentStep].projectState[pid].assigned.join(', ') || 'None' }}
-			  </li>
-			</ul>
-		  </div>
+	  <div *ngIf="isLoading" class="text-center mt-5">
+		<div class="spinner-border text-primary" role="status">
+		<span class="visually-hidden">Loading Algorithm Data...</span>
 		</div>
-  
-		<div class="mt-4 text-center">
-		  <button class="btn btn-outline-primary me-2" (click)="prevStep()" [disabled]="currentStep === 0">Previous</button>
-		  <button class="btn btn-outline-success" (click)="nextStep()" [disabled]="currentStep === steps.length - 1">Next</button>
-		</div>
-	  </div>
+		<p>Loading Algorithm Data...</p>
 	</div>
+	
+	<!-- Show main card only when not loading -->
+	<div *ngIf="!isLoading" class="card shadow p-3 animate__animated animate__fadeIn">
+		<div class="card-body">
+	
+		<!-- Handle case where steps are not yet available -->
+		<div *ngIf="steps.length === 0; else stepsAvailable">
+			<p class="text-muted">Algorithm steps will appear here once the data is processed.</p>
+		</div>
+	
+		<ng-template #stepsAvailable>
+			<!-- Display Current Step Information -->
+			<h5 class="card-title">Step {{ currentStep + 1 }} of {{ steps.length }}</h5>
+			<!-- Display the message for the current step -->
+			<p class="card-text text-info fst-italic">{{ steps[currentStep].message || 'Starting...' }}</p>
+	
+			<hr>
+	
+			<div class="row mt-3">
+				<!-- REMOVED Student Assignments Column -->
+	
+				<!-- Column for Project Status (now potentially taking full width or adjusted layout) -->
+				<!-- Use col-md-12 or adjust if you have other columns -->
+				<div class="col-md-12">
+				<h6>Project Status (Project ID [Capacity])</h6>
+				<!-- Check if projectState object exists -->
+				<div *ngIf="steps[currentStep]?.projectState; else noProjectState">
+					<ul class="list-group list-group-flush small">
+						<!-- Iterate through projects -->
+						<li class="list-group-item" *ngFor="let pid of objectKeys(steps[currentStep]?.projectState)">
+						<!-- Display Project ID and its capacity -->
+						<span class="fw-bold">P{{ pid }}</span> [Cap: {{ steps[currentStep].projectState[pid].capacity  }}]<br>
+						<!-- Display assigned students or 'None' -->
+						<span class="text-muted">Assigned:</span>
+						<ng-container *ngIf="steps[currentStep].projectState[pid]?.assigned && steps[currentStep].projectState[pid].assigned.length > 0; else noStudentsAssigned">
+							<!-- Prefix student IDs with 'S' -->
+							S{{ steps[currentStep].projectState[pid].assigned.join(', S') }}
+						</ng-container>
+						<ng-template #noStudentsAssigned>
+							<span class="fst-italic text-secondary">None</span>
+						</ng-template>
+						</li>
+					</ul>
+				</div>
+				<ng-template #noProjectState>
+					<p class="text-muted small">Project status not available for this step.</p>
+				</ng-template>
+				</div>
+			</div> <!-- End Row -->
+	
+			<!-- Navigation Buttons -->
+			<div class="mt-4 text-center">
+				<button class="btn btn-outline-primary me-2 btn-sm" (click)="prevStep()" [disabled]="currentStep === 0">
+				<i class="bi bi-arrow-left"></i> Previous
+				</button>
+				<button class="btn btn-outline-success btn-sm" (click)="nextStep()" [disabled]="currentStep >= steps.length - 1">
+				Next <i class="bi bi-arrow-right"></i>
+				</button>
+			</div>
+		</ng-template> <!-- End stepsAvailable -->
+	
+		</div> <!-- End Card Body -->
+	</div> <!-- End Card -->
   </div>
