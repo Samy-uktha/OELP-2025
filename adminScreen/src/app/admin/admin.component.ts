@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms'
 import { CommonModule } from '@angular/common';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   standalone: true,
@@ -12,7 +13,11 @@ import { ReactiveFormsModule } from '@angular/forms';
 })
 export class AdminComponent implements OnInit{
   http = inject(HttpClient);
-
+  constructor(private router: Router) {}
+  goBackToLogin() {
+    this.router.navigate(['/login']); // 👈 Adjust path if your login route is different
+  }
+  
   phases = [
     { phase_number: 1, start_date: '', end_date: '' },
     { phase_number: 2, start_date: '', end_date: '' },
