@@ -469,4 +469,4 @@ ADD constraint  fk_application FOREIGN KEY (student_id, project_id)
 -- psql "postgresql://postgres_pal:i4msCXk2lL9Kqz2MPRkhx8BRmqkcvqJH@dpg-d08k91pr0fns73a11q1g-a.oregon-postgres.render.com:5432/project_allotment_ogqm?sslmode=require" < projectAllotment.sql
 
 -- to open the databse in the terminal  : 
--- psql "postgresql://postgres_pal:i4msCXk2lL9Kqz2MPRkhx8BRmqkcvqJH@dpg-d08k91pr0fns73a11q1g-a.oregon-postgres.render.com:5432/project_allotment_ogqm?sslmode=require" < projectAllotment.sql
+-- psql "postgresql://postgres_pal:i4msCXk2lL9Kqz2MPRkhx8BRmqkcvqJH@dpg-d08k91pr0fns73a11q1g-a.oregon-postgres.render.com:5432/project_allotment_ogqm?sslmode=require"

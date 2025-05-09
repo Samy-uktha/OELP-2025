@@ -1,0 +1,131 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Raleway:wght@700&display=swap');
+
+/* Apply a DARK gradient background */
+.portal-container {
+  /* Example Dark Gradient: Deep Charcoal */
+  background: linear-gradient(135deg, #98c9e1 0%, #d1e8ff 100%);
+  /* Example Dark Gradient: Midnight Blue */
+  /* background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); */
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Style the card for DARK theme */
+.portal-card {
+  background-color: #223041; /* Dark Card Background */
+  border: 1px solid #444;   /* Optional: Subtle border for definition */
+  border-radius: 15px;
+  min-width: 380px;
+  max-width: 500px;
+  width: 90%;
+  padding: 2.5rem; /* Base padding */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); /* Adjusted shadow for dark */
+}
+
+/* Style the card title for DARK theme */
+.portal-card .card-title {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 700;
+  color: #e9ecef; /* Light Gray for Title */
+  font-size: 2rem;
+  opacity: 0; /* Start hidden for animation */
+}
+
+/* Style the subtitle for DARK theme */
+.portal-card .card-subtitle {
+  font-size: 1.1rem;
+  color: #adb5bd; /* Lighter Muted Gray for Subtitle */
+}
+
+/* Base Portal Button Style */
+.portal-button {
+  padding: 0.75rem 1.25rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  color: #fff; /* Keep text white/light */
+}
+
+/* Button hover effect - Remove dark shadow, keep lift */
+.portal-button:hover {
+  transform: translateY(-3px);
+  box-shadow: none; /* Dark shadow not visible on dark bg */
+  /* Consider slightly brightening the button bg on hover for feedback */
+  filter: brightness(110%); /* Example: Make button slightly brighter */
+  color: #fff;
+}
+
+/* Ensure icons have consistent vertical alignment */
+.portal-button .bi {
+  vertical-align: middle;
+  margin-bottom: 2px;
+}
+
+/* --- Custom Button Colors (Can remain same, or adjust saturation/brightness) --- */
+/* Using the same colors as before, they should contrast well */
+
+/* Faculty Button */
+.btn-faculty {
+  background-color: #4a90e2;
+}
+/* .btn-faculty:hover { background-color: #5ea1f2; } Optional brighter hover */
+
+/* Student Button */
+.btn-student {
+  background-color: #50b891;
+}
+/* .btn-student:hover { background-color: #60c8a1; } Optional brighter hover */
+
+/* Admin Button */
+.btn-admin {
+  background-color: #708090;
+}
+/* .btn-admin:hover { background-color: #8090a0; } Optional brighter hover */
+
+/* Visualiser Button */
+.btn-visualiser {
+  background-color: #4fc0d0;
+}
+/* .btn-visualiser:hover { background-color: #5fd0e0; } Optional brighter hover */
+
+
+/* Define the animation for the title */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Apply the animation to the title */
+.animated-title {
+  animation: fadeInUp 1.5s ease-out 0.9s forwards;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .portal-card {
+    min-width: 300px;
+    padding: 1.5rem !important; /* Adjust padding */
+    /* You might want a less intense shadow on mobile */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
+  }
+  .portal-card .card-title {
+    font-size: 1.8rem;
+  }
+  .portal-card .card-subtitle {
+    font-size: 1rem;
+  }
+   .portal-button {
+     font-size: 1rem;
+   }
+}

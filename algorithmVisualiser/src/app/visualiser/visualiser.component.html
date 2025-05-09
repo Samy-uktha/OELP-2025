@@ -8,6 +8,16 @@
 			<h5 class="card-title text-center text-primary">Dashboard</h5>
   
 			<ul class="nav flex-column nav-pills">
+
+				<li class="nav-item">
+					<a class="nav-link" 
+					   [class.active]="selectedTab === 'Overview'" 
+					   role="button" 
+					   (click)="selectTab('Overview')">
+					  <i class="bi bi-folder"></i> Overview
+					</a>
+				  </li>
+
 			  <li class="nav-item">
 				<a class="nav-link" 
 				   [class.active]="selectedTab === 'SPA lecturer'" 
@@ -69,6 +79,11 @@
 		  <div class="card-body">
   
 			<!-- Projects Section -->
+			<div *ngIf="selectedTab === 'Overview'">
+				<h2 class="mb-4 text-center text-secondary">Help</h2>
+				<app-process-details></app-process-details>
+			  </div>
+
 			<div *ngIf="selectedTab === 'SPA lecturer'">
 			  <h2 class="mb-4 text-center text-secondary">SPA lecturer</h2>
 			  <app-spa-lecturer> </app-spa-lecturer>

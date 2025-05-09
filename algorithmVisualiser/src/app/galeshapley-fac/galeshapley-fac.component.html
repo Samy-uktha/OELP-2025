@@ -14,28 +14,31 @@
 		&rarr; All students start free and unassigned.<br>
 		&rarr; Every project and lecturer is unsubscribed (no provisional assignments).<br><br>
 	
-		We iterate through the free projects, (free projects → the |assigned| < capacity)
-		Each project proposes to their highest ranked student, not yet rejected
-		i.e., Here there could be two cases : 
+		The iterative process : 
 		<ul>
-			<li> The proposed student is already assigned to a project<br>
-				— the assigned project’s and the currently traversed project’s ranks are compared, 
-				if the current project ranks higher the students assignment is swapped and the student 
-				is removed from the projects assignment list. Else the student is skipped 
-				( i.e the student rejects the project)
+			<li> The process continues as long as there is atleast one project with students
+				 in their preference list not yet proposed to. i.e., there are free slots in 
+				the projects which have not yet traversed their preference lists. 
 				</li>
 			<li>
-				The proposed student is not assigned to a project, the student accepts the project 
-				( and the student is added to the project’s assigned list)
+				Pick a free slot say P_i_0, it consults it preference list 
+				(i.e., nothing but the preference list of project P_i). From the list,
+				 pick the top-most preferred student say s_i, which it has not yet proposed to.
 			</li>
-		</ul>
-		This continues until : 
-		<ul><li>All projects are full</li>
-		<li>Or all the students in the preference list are exhausted.</li>
+			<li> s_i evaluates </li>
+				<ul>
+					<li> If s_i is not yet assigned to any project, it tentatively accepts p_i_0.</li>
+					<li>If s_i is tentatively assigned, we compare the ranks of the projects, 
+						let the currently assigned project be p_curr_n. if rank(p_i_0) < rank(p_curr_n),
+						 then s_i accepts the slot else rejects.</li>
+				</ul>
+				<li>This loop continues until all the slots are tentatively assigned to some student or 
+					till all the slots have traversed all their preferences.</li>
 		</ul>
 
 
-		Outcome  : <strong>Project-optimal </strong>: Each project gets the best student they can get in any stable matching. Students might get less-preferred projects.
+
+		Outcome  : <strong>Faculty-optimal </strong>: Each faculty gets the best student for a project they can get in any stable matching. students might get less-preferred projects.
 
 
 	  </div>

@@ -9,33 +9,35 @@
 		&rarr; All students start free and unassigned.<br>
 		&rarr; Every project and lecturer is unsubscribed (no provisional assignments).<br><br>
 	
-		The algorithm iterates over each <strong>free student</strong>:
+		The iterative process : 
 		<ul>
-		  <li>Each student proposes to their highest ranked project, not yet rejected <br>
-			Projects go through all their assignments, keeping the higher preferred students.
-		</li>
-		  <li> Here there could be two cases : 
-			<ul>
-			  <li>The proposed projects |assigned| = available slots <br>
-				→ what is done here is, we go through all assignments of those projects<br>
-				 and get the least ranked student among them. <br>
-				 — If the lowest ranked student’s rank is higher than(as in number) <br>
-				 than the current student who proposed, the least student is removed from <br>
-				 the projects assigned list and the current student is added. The least ranked <br>
-				 student is added back to the free students list. The current student is removed from the free students list.
-				— If the student ranks lesser than the least ranked student, then the project is skipped. I.e, the student is rejected
+			<li> The process continues as long as there is atleast one unassigned student who still 
+				has projects in their preference list, they have not yet proposed to.
 				</li>
-			  <li>The proposed project has space, then the student is accepted by the project. Thereby the size of project’s assigned increases by 1. 
+			<li>
+				Pick any student say s_i, traverse its preference list say P_s_i, 
+				pick the topmost project p_j
+				 from it (the one which they have not yet proposed)
+				 and check if the project is available.
 			</li>
-			</ul>
-		</li>
+			<li> p_j evaluates </li>
+				<ul>
+					<li>If p_j has a free slot, p_j tentatively accepts s_i.</li>
+					<li>If p_j is tentatively filled, we walk through the already assigned students and 
+						pick the student with the worst rank among them, let it be s_worst. 
+						if rank(s_i) < rank(s_worst), then remove s_worst from the 
+						assignment and add s_i. Add s_worst back to the list of free students. 
+						But if rank(s_i) > rank(s_worst), then p_j rejects s_i</li>
+				</ul>
+				<li>This loop continues until all the students are tentatively assigned to some project or till 
+					all the students have traversed all their preferences.</li>
 		</ul>
-		This continues until : 
-				All students are assigned
-				Or all the projects in the preference list are exhausted 
-		<br>
-		Outcome  : <strong>Student-optimal</strong>: Each student gets the best project they can get in any stable matching. 
-		<br> Projects might get less-preferred students
+
+
+
+		Outcome  : <strong>Student-optimal </strong>: Each student gets the best project they can get in any stable matching. projects might get less-preferred students.
+
+
 	  </div>
 	<!-- Add loading indicator -->
 	<div *ngIf="isLoading" class="text-center mt-5">

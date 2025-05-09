@@ -70,30 +70,30 @@ export class GaleshapleyStudComponent {
   }
 
   runGaleShapley() {
-    // Use original preferences, don't modify them
+
     const originalStudPref = this.studPref;
-    // Track the index of the next project each student will propose to
+
     const studentProposalIndex: { [studentId: string]: number } = {};
     Object.keys(originalStudPref).forEach(student => studentProposalIndex[student] = 0);
 
-    // Set of students who are currently unassigned
+    
     let unassignedStudents = new Set<string>(Object.keys(originalStudPref));
 
-    // Central map for current assignments (student -> project<string> | null)
+    
     const currentStudentAssignments: { [studentId: string]: string | null } = {};
     Object.keys(originalStudPref).forEach(student => currentStudentAssignments[student] = null);
 
-    // Clear pData assignments at the start
+   
     for (const pid in this.pData) this.pData[pid].assigned = [];
 
-    this.steps = []; // Clear previous steps
+    this.steps = [];
     let stepsCount = 0;
     const totalPreferences = Object.values(originalStudPref).reduce((sum, list) => sum + list.length, 0);
     const maxSteps = Math.max(1000, totalPreferences * 2);
 
-    // --- Main Algorithm Loop ---
+    
     while (unassignedStudents.size > 0 && stepsCount++ < maxSteps) {
-        const student = Array.from(unassignedStudents)[0]; // Get ONE unassigned student
+        const student = Array.from(unassignedStudents)[0]; 
 
         const prefs = originalStudPref[student] || [];
         const proposalIndex = studentProposalIndex[student];
@@ -101,7 +101,7 @@ export class GaleshapleyStudComponent {
         if (proposalIndex >= prefs.length) {
             unassignedStudents.delete(student);
             const message = `Student ${student} has no more projects. Remains unassigned.`;
-            // Pass the *original* student prefs here
+          
             this.steps.push(this.createStepStateForVisualizer(message, currentStudentAssignments, originalStudPref, this.pData));
             continue;
         }
@@ -110,17 +110,17 @@ export class GaleshapleyStudComponent {
         let message = `Student ${student} (pref #${proposalIndex + 1}) proposes to P${projectStringId}. `;
 
         const currentProjectData = this.pData[projectStringId];
-        const facultyPref = this.projPref[projectStringId] || []; // Faculty ranking
+        const facultyPref = this.projPref[projectStringId] || [];
 
-        // --- Project Decision ---
+       
         if (!currentProjectData) {
             message += `Project ${projectStringId} invalid. Proposal ignored.`;
-            studentProposalIndex[student]++; // Try next preference
+            studentProposalIndex[student]++; 
         } else if (currentProjectData.assigned.length < currentProjectData.capacity) {
-            // Case 1: Project has space
+          
             message += `P${projectStringId} has space (${currentProjectData.assigned.length}/${currentProjectData.capacity}). Accepts S${student}.`;
 
-            // *** Atomically update state ***
+            
             const previousAssignmentProjectStringId = currentStudentAssignments[student];
             if(previousAssignmentProjectStringId !== null && this.pData[previousAssignmentProjectStringId]) {
                 this.pData[previousAssignmentProjectStringId].assigned = this.pData[previousAssignmentProjectStringId].assigned.filter(s => s !== student);
@@ -156,38 +156,37 @@ export class GaleshapleyStudComponent {
             if (worstStudent !== null && effectiveProposerRank < worstRank) {
                 message += `P${projectStringId} prefers S${student}. Accepts S${student}, rejects S${worstStudent}.`;
 
-                // *** Atomically update state ***
+               
                 const previousAssignmentProjectStringId = currentStudentAssignments[student];
                 if(previousAssignmentProjectStringId !== null && this.pData[previousAssignmentProjectStringId]) {
                     this.pData[previousAssignmentProjectStringId].assigned = this.pData[previousAssignmentProjectStringId].assigned.filter(s => s !== student);
                      message += ` (S${student} leaves P${previousAssignmentProjectStringId}).`;
                 }
-                // Remove worst student from project
+                
                 currentProjectData.assigned = currentProjectData.assigned.filter(s => s !== worstStudent);
-                // Update assignments map
+                
                 currentStudentAssignments[worstStudent] = null;
                 currentStudentAssignments[student] = projectStringId;
-                // Update free students set
+               
                 unassignedStudents.add(worstStudent);
                 if (!currentProjectData.assigned.includes(student)) currentProjectData.assigned.push(student); // Add proposer
                 unassignedStudents.delete(student);
-                // Increment proposal index AFTER action
+                
                 studentProposalIndex[student]++;
 
             } else {
-                // Project rejects proposer
+                
                 message += `P${projectStringId} rejects S${student}.`;
-                // Student remains unassigned. Increment proposal index AFTER action.
+               
                 studentProposalIndex[student]++;
             }
         }
 
-        // --- Record Step ---
-        // Pass the *original* student preferences here
+       
         this.steps.push(this.createStepStateForVisualizer(
             message,
             currentStudentAssignments,
-            originalStudPref, // Pass original student prefs
+            originalStudPref,
             this.pData
         ));
 
@@ -197,24 +196,22 @@ export class GaleshapleyStudComponent {
     const finalMessage = stepsCount >= maxSteps ? "Maximum steps reached." : "Algorithm finished.";
     this.steps.push(this.createStepStateForVisualizer(finalMessage, currentStudentAssignments, originalStudPref, this.pData, true));
     console.log("Visualisation Complete. Steps generated:", this.steps.length);
-    if (this.steps.length > 0) this.currentStep = 0; // Reset view
+    if (this.steps.length > 0) this.currentStep = 0;
 }
 
 
-// --- HELPER FUNCTION for StepState ---
-// Now accepts the simple studentPref { student: [project] } map
 createStepStateForVisualizer(
     message: string,
-    currentAssignments: { [key: string]: string | null }, // Expects string project IDs
-    studentPrefMap: { [key: string]: string[] }, // Expects simple student pref map
+    currentAssignments: { [key: string]: string | null },
+    studentPrefMap: { [key: string]: string[] },
     projectData: { [key: string]: { assigned: string[]; capacity: number } },
     isFinalOrError: boolean = false
 ): StepState {
 
-    const finalAssignments: { [key: string]: number } = {}; // For StepState interface (numeric project ID)
+    const finalAssignments: { [key: string]: number } = {}; 
     for (const studentId in currentAssignments) {
         if (currentAssignments[studentId] !== null) {
-            const projectIdNum = Number(currentAssignments[studentId]); // Convert string to number
+            const projectIdNum = Number(currentAssignments[studentId]);
             if (!isNaN(projectIdNum)) {
                 finalAssignments[studentId] = projectIdNum;
             } else {
@@ -223,18 +220,18 @@ createStepStateForVisualizer(
         }
     }
 
-    // Use the passed simple studentPrefMap directly for the state
+
     const studentPrefsForState = JSON.parse(JSON.stringify(studentPrefMap));
     const projectStateForState = JSON.parse(JSON.stringify(projectData));
 
     const step: StepState = {
         message: message,
         assignments: finalAssignments,
-        studentPref: studentPrefsForState, // Matches StepState interface { [key:string]: string[] }
+        studentPref: studentPrefsForState,
         projectState: projectStateForState,
     };
 
-    return JSON.parse(JSON.stringify(step)); // Return deep copy
+    return JSON.parse(JSON.stringify(step)); 
 }
 
   buildStudentProjectMap(preferences: Preference[]): { [key: string]: string[] } {

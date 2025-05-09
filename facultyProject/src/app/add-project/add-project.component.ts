@@ -18,6 +18,7 @@ import { DeptDataService } from '../dept-data.service';
 export class AddProjectComponent {
   @Input() faculty: faculty = {} as faculty;
   @Output() addproj = new EventEmitter<boolean>();
+  // @Output() addproj = new EventEmitter<boolean>();
 
   newProject: project = {
     project_id: 0,
@@ -106,6 +107,15 @@ export class AddProjectComponent {
   }
 
   addProject(): void {
+    if (
+      this.newProject.min_cgpa <= 1 ||
+      this.newProject.available_slots <= 0 ||
+      this.newProject.students_per_team <= 0
+    ) {
+      this.successMessage = ''; // Clear any previous success message
+      alert('Please ensure CGPA > 1, Available Slots > 0, and Students per Team > 0.');
+      return;
+    }
     if (this.newProject && this.faculty?.faculty_id) {
       const newProject = {
         ...this.newProject,
@@ -161,11 +171,15 @@ export class AddProjectComponent {
         dept_name : dept.dept_name
       });
     }
-    this.searchQuery_dept = ''; // Clear search field after selection
-    this.filteredDept = []; // Hide search results
+    this.searchQuery_dept = ''; 
+    this.filteredDept = []; 
   }
 
   removeDept(index: number): void {
     this.newProject.department?.splice(index, 1);
+  }
+
+  back(){
+    this.addproj.emit(false);
   }
 }

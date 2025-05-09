@@ -12,19 +12,29 @@
 		<strong>Initialization:</strong><br>
 		&rarr; All students start free and unassigned.<br>
 		&rarr; Every project and lecturer is unsubscribed (no provisional assignments).<br><br>
+
+		we assume that each project is provided by dummy lecturer (whose id would be same as 
+		the project id) and hence in such a way each lecturer would have a preference list 
+		and they would be offering only one project whose id is same as the lecturer id. <br> <br>
 	
-		The algorithm iterates over each <strong>undersubscribed project</strong>:
+		Here we use a lecturer queue, and the loop continues till the queue is empty. <br><br>
+		dequeue a lecturer, say L_k from the queue, while the lecturer is not full and has students 
+		in their preference list not yet proposed to, pick the 
+		top-most ranked student (which was not yet proposed) from the lecturers preference list say s_i. <br><br>
 		<ul>
-		  <li>First student on its preference list is considered.</li>
-		  <li>If the student prefers this project, they are tentatively assigned.</li>
-		  <li>If the student was already assigned another project, but prefers the new one:
-			<ul>
-			  <li>Swap the assignments.</li>
-			  <li>The old project becomes unsubscribed (adds a free slot).</li>
-			</ul>
-		  </li>
-		  <li>All less preferred projects (successors) in the student's list are pruned (deleted).</li>
+		  <li>Check if s_i has p_k in its preference list(i.e., acceptable or not).</li>
+		  <li>if acceptable and s_i, is not yet assigned it accepts.</li>
+		  <li>if acceptable, and s_i is already assigned to p_old,
+			 s_i rejects p_old, and tentatively accepts p_k. 
+			 Add L_old back to the lecturer queue. </li>
+		<li>Deletion rule : if p_k was accepted by the student, 
+			all the projects ranked lower than p_k must be removed from it.</li>
+		 <li>if L_k still has space, it is added back to lecturer queue.</li>
 		</ul>
+		This loop continues until all the slots are tentatively assigned to some 
+		student or till all the slots have traversed all their preferences.<br>
+		<br>
+
 		The process continues until all projects are full or no valid pairs remain.<br>
 		The final match is the collection of all provisional assignments, which are <strong>lecturer-optimal.</strong>
 	  </div>
