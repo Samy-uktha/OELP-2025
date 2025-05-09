@@ -958,33 +958,139 @@ async function setupTriggers() {
   console.log("Triggers set up successfully!");
 }
 
-async function bostonMechanism(priorities) {
+// async function bostonMechanism(priorities) {
 
+//   const weights = {
+//     [priorities.first]: 12,
+//     [priorities.second]: 9,
+//     [priorities.third]: 6
+//   };
+
+//   const students = (
+//     await pool.query(
+//       "SELECT Roll_no AS student_id, cgpa, year, Department_id FROM students"
+//     )
+//   ).rows;
+//   const projects = (
+//     await pool.query(
+//       `SELECT p.project_id, p.available_slots, p.min_cgpa, p.min_year, pd.dept_id AS department_id FROM projects p 
+//       LEFT JOIN project_dept pd ON p.project_id = pd.project_id`
+//     )
+//   ).rows;
+//   const applications = (await pool.query("SELECT * FROM project_applications"))
+//     .rows;
+
+//   const studentMap = Object.fromEntries(students.map((s) => [s.student_id, s]));
+//   const projectMap = Object.fromEntries(projects.map((p) => [p.project_id, p]));
+//   const projectApplicants = {};
+
+//   // Group applicants by project
+//   for (const app of applications) {
+//     const student = studentMap[app.student_id];
+//     const project = projectMap[app.project_id];
+//     if (!student || !project) continue;
+
+//     const cgpa = parseFloat(student.cgpa) || 0;
+//     const year = student.year;
+//     const Department_id = student.Department_id;
+//     const min_year = project.min_year;
+//     const project_dept = project.department_id;
+
+//     let score = cgpa; 
+
+//     if (year != null && min_year != null && year >= min_year) score += weights['year'] || 0;
+//     if (
+//       Department_id != null &&
+//       project_dept != null &&
+//       Department_id === project_dept
+//     )
+//       score += weights['department'] || 0;
+
+//     const prereqRes = await pool.query(
+//       `SELECT course_id FROM prereq WHERE project_id = $1`,
+//       [project.project_id]
+//     );
+//     const prereqIds = prereqRes.rows.map((row) => row.course_id);
+
+//     const completedRes = await pool.query(
+//       `SELECT course_id FROM student_courses WHERE student_id = $1`,
+//       [student.student_id]
+//     );
+//     const completedIds = completedRes.rows.map((row) => row.course_id);
+
+//     const matchedCourses = prereqIds.filter((id) => completedIds.includes(id));
+//     let prereqBonus = 0;
+//     if (prereqIds.length > 0) {
+//       const percentMatched = matchedCourses.length / prereqIds.length;
+//       prereqBonus = percentMatched * (weights['prereq'] || 0);
+//     }
+
+//     score += prereqBonus;
+
+//     if (!projectApplicants[project.project_id])
+//       projectApplicants[project.project_id] = [];
+//     projectApplicants[project.project_id].push({
+//       student_id: student.student_id,
+//       score,
+//     });
+//   }
+
+//   // Final allocations
+//   const allocations = {};
+//   const ranks = {};
+
+//   for (const [project_id, applicants] of Object.entries(projectApplicants)) {
+//     const remaining = projectMap[project_id].available_slots;
+//     if (remaining <= 0) continue;
+
+//     applicants.sort((a, b) => b.score - a.score);
+//     const selected = applicants.slice(0, remaining);
+
+//     allocations[project_id] = selected;
+
+//     // Save ranks for all applicants
+//     ranks[project_id] = applicants.map((app, index) => ({
+//       student_id: app.student_id,
+//       rank: index + 1,
+//       score: app.score,
+//     }));
+//   }
+
+//   return { allocations, ranks };
+// }
+
+async function bostonMechanism(priorities) {
+  console.log("running bostonMechanism---------------------------------------------------------")
   const weights = {
-    [priorities.first]: 12,
-    [priorities.second]: 9,
-    [priorities.third]: 6
+    cgpa: priorities.cgpa || 0,
+    department: priorities.department || 0,
+    year: priorities.year || 0,
+    prereq: priorities.prereq || 0
   };
+
+  console.log(weights)
 
   const students = (
     await pool.query(
-      "SELECT Roll_no AS student_id, cgpa, year, Department_id FROM students"
+      'SELECT Roll_no AS student_id, cgpa, year, department_id FROM students'
     )
   ).rows;
+
+
   const projects = (
     await pool.query(
-      `SELECT p.project_id, p.available_slots, p.min_cgpa, p.min_year, pd.dept_id AS department_id FROM projects p 
-      LEFT JOIN project_dept pd ON p.project_id = pd.project_id`
+      `SELECT p.project_id, p.available_slots, p.min_cgpa, p.min_year, pd.dept_id AS department_id 
+       FROM projects p 
+       LEFT JOIN project_dept pd ON p.project_id = pd.project_id`
     )
   ).rows;
-  const applications = (await pool.query("SELECT * FROM project_applications"))
-    .rows;
 
-  const studentMap = Object.fromEntries(students.map((s) => [s.student_id, s]));
-  const projectMap = Object.fromEntries(projects.map((p) => [p.project_id, p]));
+  const applications = (await pool.query("SELECT * FROM project_applications")).rows;
+  const studentMap = Object.fromEntries(students.map(s => [s.student_id, s]));
+  const projectMap = Object.fromEntries(projects.map(p => [p.project_id, p]));
+
   const projectApplicants = {};
 
-  // Group applicants by project
   for (const app of applications) {
     const student = studentMap[app.student_id];
     const project = projectMap[app.project_id];
@@ -992,50 +1098,59 @@ async function bostonMechanism(priorities) {
 
     const cgpa = parseFloat(student.cgpa) || 0;
     const year = student.year;
-    const Department_id = student.Department_id;
+    const dept = student.department_id;
     const min_year = project.min_year;
-    const project_dept = project.department_id;
+    const proj_dept = project.department_id;
+    
+    // console.log("students details",cgpa,year,dept,'and',min_year,proj_dept)
 
-    let score = cgpa; 
+    let score = 0;
 
-    if (year != null && min_year != null && year >= min_year) score += weights['year'] || 0;
-    if (
-      Department_id != null &&
-      project_dept != null &&
-      Department_id === project_dept
-    )
-      score += weights['department'] || 0;
+    // CGPA is normalized out of 10 and scaled
+    score += (cgpa / 10) * weights.cgpa;
 
+    // Year match
+    if (year != null && min_year != null && year >= min_year) {
+      score += weights.year;
+    }
+
+    // Department match
+    if (dept != null && proj_dept != null && dept === proj_dept) {
+      score += weights.department;
+    }
+
+    // Prerequisite match
     const prereqRes = await pool.query(
       `SELECT course_id FROM prereq WHERE project_id = $1`,
       [project.project_id]
     );
-    const prereqIds = prereqRes.rows.map((row) => row.course_id);
+    const prereqIds = prereqRes.rows.map(row => row.course_id);
 
     const completedRes = await pool.query(
       `SELECT course_id FROM student_courses WHERE student_id = $1`,
       [student.student_id]
     );
-    const completedIds = completedRes.rows.map((row) => row.course_id);
+    const completedIds = completedRes.rows.map(row => row.course_id);
 
-    const matchedCourses = prereqIds.filter((id) => completedIds.includes(id));
-    let prereqBonus = 0;
+    const matchedCourses = prereqIds.filter(id => completedIds.includes(id));
+
     if (prereqIds.length > 0) {
       const percentMatched = matchedCourses.length / prereqIds.length;
-      prereqBonus = percentMatched * (weights['prereq'] || 0);
+      score += percentMatched * weights.prereq;
     }
-
-    score += prereqBonus;
 
     if (!projectApplicants[project.project_id])
       projectApplicants[project.project_id] = [];
+
     projectApplicants[project.project_id].push({
       student_id: student.student_id,
-      score,
+      score
     });
+   console.log("score is", score)
+ 
   }
 
-  // Final allocations
+  
   const allocations = {};
   const ranks = {};
 
@@ -1048,21 +1163,30 @@ async function bostonMechanism(priorities) {
 
     allocations[project_id] = selected;
 
-    // Save ranks for all applicants
     ranks[project_id] = applicants.map((app, index) => ({
       student_id: app.student_id,
       rank: index + 1,
-      score: app.score,
+      score: app.score
     }));
   }
 
   return { allocations, ranks };
 }
 
-async function saveAllocations_boston(priorities) {
+
+async function saveAllocations_boston(prioritiesArray) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
+
+    let priorities = {};
+    if (Array.isArray(prioritiesArray)) {
+      prioritiesArray.forEach(p => {
+        priorities[p.key] = p.value;
+      });
+    } else {
+      priorities = prioritiesArray || {};
+    }
 
     const { allocations, ranks } = await bostonMechanism(priorities);
 
