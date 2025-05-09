@@ -21,6 +21,7 @@ export class ProjectService {
             min_cgpa : proj.min_cgpa,
             description : proj.description,
             faculty_name : proj.faculty,
+            faculty_id : proj.faculty_id,
             min_year : proj.min_year,
             prerequisites : proj.prerequisites,
             documents : proj.documents,

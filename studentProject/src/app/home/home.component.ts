@@ -49,25 +49,109 @@ export class HomeComponent {
   allocationPhase: boolean = false;
 
 
-  onPhaseChanged(phase: any) {
-    this.currentPhase = phase;
-    console.log('Current Phase:', phase);
-    if (phase.phase_number == 1) {
-      this.proposalPhase = true
-    }
-    if (phase.phase_number == 2) {
-      this.applicationPhase = true
-    }
-    if (phase.phase_number == 3) {
-      this.preferencesPhase = true
-    }
-    if (phase.phase_number == 4) {
-      this.allocationPhase = true
-    }
-    else {
+  // onPhaseChanged(phase: any) {
+  //   this.currentPhase = phase;
+    
+  //   console.log('Current Phase:', phase);
+  //   if (phase.phase_number == 1) {
+  //     this.proposalPhase = true
+  //   }
+  //   if (phase.phase_number == 2) {
+  //     this.applicationPhase = true
+  //   }
+  //   if (phase.phase_number == 3) {
+  //     this.preferencesPhase = true
+  //   }
+  //   if (phase.phase_number == 4) {
+  //     this.allocationPhase = true
+  //   }
+  //   else {
+  //     this.proposalPhase = true;
+  //     this.applicationPhase = true;
+  //     this.preferencesPhase = true;
+  //     this.allocationPhase = true;
+  //   }
+  // }
 
+  onPhaseChanged(phase : any) {
+    this.currentPhase = phase;
+    console.log("current phase:", phase)
+    if (!phase || phase.phase_number == null) {
+      // If phase is null or phase_number is undefined/null
+      this.proposalPhase = true;
+      this.applicationPhase = true;
+      this.preferencesPhase = true;
+      this.allocationPhase = true;
+    } else {
+      if (phase.phase_number == 1) {
+        this.proposalPhase = true;
+      }
+      if (phase.phase_number == 2) {
+        this.applicationPhase = true;
+      }
+      if (phase.phase_number == 3) {
+        this.preferencesPhase = true;
+      }
+      if (phase.phase_number == 4) {
+        this.allocationPhase = true;
+      }
     }
   }
+  branchList = [
+    { label: 'CSE', code: 11 },
+    { label: 'CE', code: 10 },
+    { label: 'EE', code: 12 },
+    { label: 'ME', code: 13 },
+    { label: 'DSE', code: 14 }
+  ];
+  
+  selectedBranchCodes: number[] = [];
+  
+  updateBranchFilter(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const code = parseInt(input.value);
+    console.log("code",code)
+  
+    if (input.checked) {
+      this.selectedBranchCodes.push(code);
+    } else {
+      this.selectedBranchCodes = this.selectedBranchCodes.filter(c => c !== code);
+    }
+  }
+
+  onBranchFilterChange(code: number, event: any) {
+    if (event.target.checked) {
+      this.selectedBranchCodes.push(code);
+    } else {
+      this.selectedBranchCodes = this.selectedBranchCodes.filter(c => c !== code);
+    }
+  }
+  
+
+  getFilteredProjects() {
+    const baseProjects = this.selectedTab === 'all'
+      ? this.allProjects
+      : this.selectedTab === 'eligible'
+      ? this.eligibleProjects
+      : this.availableProjects;
+
+      console.log("projetcs", baseProjects)
+      console.log("selected branch codes", this.selectedBranchCodes)
+      
+  
+    if (this.selectedBranchCodes.length === 0) {
+      return baseProjects; // No filters = show all
+    }
+  
+    return baseProjects.filter(project => {
+      // console.log("Faculty ID:", project.faculty_id, typeof project.faculty_id);
+
+      const facultyBranchCode = Math.floor(project.faculty_id / 1000); // First two digits
+      return this.selectedBranchCodes.includes(facultyBranchCode);
+    });
+  }
+  
+  
 
 
   toggleEditing() {
@@ -76,6 +160,11 @@ export class HomeComponent {
       this.getStudentPreferences();
     }
     this.isEditingPreferences = !this.isEditingPreferences;
+  }
+
+  openedProjectTitle: string | null = null;
+  toggleProjectDescription(title : string): void {
+    this.openedProjectTitle = this.openedProjectTitle === title ? null : title;
   }
 
   drop(event: CdkDragDrop<string[]>) {
