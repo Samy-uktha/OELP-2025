@@ -184,33 +184,100 @@ export class HomeComponent {
     console.log('Received User ID:', this.userId);
   }
 
+  // ngOnInit() {
+  //   if (!this.userId) {
+  //     console.error('User ID is missing. Redirecting to login.');
+  //     alert('User session expired. Please log in again.');
+  //     this.router.navigate(['/login']); // Redirect to login page
+  //     return;
+  //   }
+
+  //   // Fetch student data
+  //   this.service.getStudent(this.userId).subscribe({
+  //     next: (Data) => {
+  //       this.student = Data;
+  //       console.log('Fetched student data:', this.student);
+  //       console.log('student.applied', this.student.applied);
+  //       if (this.student.applied) {
+  //         this.update_applications(this.student.applied);
+  //         this.getStudentPreferences()
+  //         this.updateAvailableProjects();
+  //       }
+  //       if (this.student.rollNumber) {
+  //         this.encodedName = btoa(this.student.name);
+  //         this.getStudentPreferences();
+  //         // this.getStudentRank();
+  //       }
+  //       // Check if projects are already fetched before filtering eligible ones
+  //       if (this.allProjects.length > 0) {
+  //         this.updateEligibleProjects();
+  //       }
+  //     },
+  //     error: (error) => {
+  //       console.error('Error fetching student data:', error);
+  //       alert('Failed to load student data. Please try again.');
+  //     },
+  //   });
+
+  //   // Fetch project data
+  //   this.projservice.getProjects().subscribe({
+  //     next: (data) => {
+  //       this.allProjects = data;
+  //       // console.log('Fetched projects data:', this.allProjects);
+
+  //       // Check if student data is already fetched before filtering eligible ones
+  //       if (this.student.year) {
+  //         this.updateEligibleProjects();
+  //       }
+  //       this.updateAvailableProjects();
+  //     },
+  //     error: (error) => {
+  //       console.error('Error fetching projects data:', error);
+  //       alert('Failed to load projects data. Please try again.');
+  //     },
+  //   });
+  //   // getStudentPreferences()
+
+  //    this.getStudentPreferences();
+  // }
+
   ngOnInit() {
     if (!this.userId) {
       console.error('User ID is missing. Redirecting to login.');
       alert('User session expired. Please log in again.');
-      this.router.navigate(['/login']); // Redirect to login page
+      this.router.navigate(['/login']);
       return;
     }
 
-    // Fetch student data
+    let studentDataLoaded = false;
+    let projectDataLoaded = false;
+
+    const tryLoadPreferences = () => {
+      if (studentDataLoaded && projectDataLoaded && this.student.rollNumber) {
+        this.updateEligibleProjects(); // Depends on student and allProjects
+        this.getStudentPreferences();   // Depends on student.rollNumber and allProjects
+      } else if (projectDataLoaded) {
+        // If only projects loaded, update available (likely empty if student not loaded)
+        this.updateAvailableProjects();
+      }
+    };
+
     this.service.getStudent(this.userId).subscribe({
       next: (Data) => {
         this.student = Data;
         console.log('Fetched student data:', this.student);
-        console.log('student.applied', this.student.applied);
-        if (this.student.applied) {
-          this.update_applications(this.student.applied);
-          this.updateAvailableProjects();
+        // Initialize this.applied with titles from student's applications.
+        // This list is not yet sorted by preference.
+        if (this.student.applied && this.student.applied.length > 0) {
+          this.applied = this.student.applied.map(app => app.title);
+        } else {
+          this.applied = [];
         }
         if (this.student.rollNumber) {
           this.encodedName = btoa(this.student.name);
-          this.getStudentPreferences();
-          // this.getStudentRank();
         }
-        // Check if projects are already fetched before filtering eligible ones
-        if (this.allProjects.length > 0) {
-          this.updateEligibleProjects();
-        }
+        studentDataLoaded = true;
+        tryLoadPreferences();
       },
       error: (error) => {
         console.error('Error fetching student data:', error);
@@ -218,58 +285,123 @@ export class HomeComponent {
       },
     });
 
-    // Fetch project data
     this.projservice.getProjects().subscribe({
       next: (data) => {
         this.allProjects = data;
-        // console.log('Fetched projects data:', this.allProjects);
-
-        // Check if student data is already fetched before filtering eligible ones
-        if (this.student.year) {
-          this.updateEligibleProjects();
-        }
-        this.updateAvailableProjects();
+        console.log('Fetched projects data:', this.allProjects.length);
+        projectDataLoaded = true;
+        tryLoadPreferences();
       },
       error: (error) => {
         console.error('Error fetching projects data:', error);
         alert('Failed to load projects data. Please try again.');
       },
     });
-
-    //  this.getStudentPreferences();
   }
 
 
+  // getStudentPreferences() {
+  //   if (!this.student.rollNumber) {
+  //     console.error('User ID is missing. Cannot fetch preferences.');
+  //     return;
+  //   }
+
+  //   this.appservice.getPreferences(this.student.rollNumber).subscribe({
+  //     next: (preferences: preference[]) => {
+  //       console.log('Fetched preferences:', preferences);
+
+  //       let orderedPreferences = preferences
+  //         .sort((a, b) => a.rank - b.rank)
+  //         .map((pref) => {
+  //           const project = this.allProjects.find(
+  //             (p) => p.project_id === pref.project_id
+  //           );
+  //           return project ? project.title : null;
+  //         })
+  //         .filter((title): title is string => title !== null);
+
+  //       // Append newly applied projects that aren't in preferences
+  //       this.applied.forEach((appliedProject) => {
+  //         if (!orderedPreferences.includes(appliedProject)) {
+  //           orderedPreferences.push(appliedProject);
+  //         }
+  //       });
+
+  //       this.applied = orderedPreferences;
+  //     },
+  //     error: (err) => console.error('Error fetching preferences:', err),
+  //   });
+  // }
+
   getStudentPreferences() {
     if (!this.student.rollNumber) {
-      console.error('User ID is missing. Cannot fetch preferences.');
+      console.warn('Student roll number is missing. Cannot fetch preferences.');
+      this.updateAvailableProjects(); // Still update available based on current (possibly empty) applied list
       return;
+    }
+    if (!this.allProjects || this.allProjects.length === 0) {
+        console.warn('allProjects is empty. Cannot reliably sort preferences. Will update available projects.');
+        this.updateAvailableProjects(); // Update available based on current `this.applied`
+        return;
     }
 
     this.appservice.getPreferences(this.student.rollNumber).subscribe({
-      next: (preferences: preference[]) => {
-        console.log('Fetched preferences:', preferences);
+      next: (backendPreferences: preference[]) => {
+        console.log('Fetched backend preferences:', backendPreferences);
 
-        let orderedPreferences = preferences
-          .sort((a, b) => a.rank - b.rank)
-          .map((pref) => {
-            const project = this.allProjects.find(
-              (p) => p.project_id === pref.project_id
-            );
-            return project ? project.title : null;
+        const rankMap = new Map<number, number>();
+        backendPreferences.forEach(p => rankMap.set(p.project_id, p.rank));
+
+        // Create a temporary array of objects with title, project_id, and backendRank
+        const projectsToReorder = this.applied
+          .map(title => {
+            const project = this.allProjects.find(p => p.title === title);
+            if (!project) {
+              console.warn(`Applied project titled "${title}" not found in allProjects. It will be excluded from sorted list.`);
+              return null;
+            }
+            return {
+              title: title,
+              project_id: project.project_id,
+              backendRank: rankMap.get(project.project_id)
+            };
           })
-          .filter((title): title is string => title !== null);
+          .filter(p => p !== null) as { title: string; project_id: number; backendRank: number | undefined }[];
 
-        // Append newly applied projects that aren't in preferences
-        this.applied.forEach((appliedProject) => {
-          if (!orderedPreferences.includes(appliedProject)) {
-            orderedPreferences.push(appliedProject);
+        // Sort the temporary array
+        projectsToReorder.sort((a, b) => {
+          const aHasRank = a.backendRank !== undefined;
+          const bHasRank = b.backendRank !== undefined;
+
+          if (aHasRank && bHasRank) {
+            return a.backendRank! - b.backendRank!; // Both have ranks
           }
+          if (aHasRank) {
+            return -1; // a has rank, b does not
+          }
+          if (bHasRank) {
+            return 1; // b has rank, a does not
+          }
+          // Neither has a backend rank (newly applied, preferences not saved yet).
+          // Maintain their relative order from the original `this.applied` list.
+          // Most sort implementations are stable, so returning 0 should preserve order for equal items.
+          // For explicit stability:
+          const originalIndexA = this.applied.indexOf(a.title);
+          const originalIndexB = this.applied.indexOf(b.title);
+          return originalIndexA - originalIndexB;
         });
 
-        this.applied = orderedPreferences;
+        // Update this.applied with the sorted titles
+        this.applied = projectsToReorder.map(p => p.title);
+        console.log('this.applied sorted by preference:', this.applied);
+
+        this.updateAvailableProjects(); // Update available projects based on the now sorted `this.applied`
       },
-      error: (err) => console.error('Error fetching preferences:', err),
+      error: (err) => {
+        console.error('Error fetching preferences:', err);
+        // Even on error, update available projects based on the current (unsorted or previously sorted) this.applied
+        this.updateAvailableProjects();
+      },
     });
   }
 

@@ -14,24 +14,28 @@
 		&rarr; All students start free and unassigned.<br>
 		&rarr; Every project and lecturer is unsubscribed (no provisional assignments).<br><br>
 	
-		Initially all students are free, and all projects and lecturers are totally unsubscribed.
-		 As long as there is some student 𝑠𝑖 who is free and who has a non-empty preference list,
-		  𝑠𝑖 applies to the first project 𝑝𝑗 on his/her list. We let 𝑙𝑘 be the lecturer who offers 𝑝𝑗. 
-		  Immediately, 𝑠𝑖 becomes provisionally assigned to 𝑝𝑗 (and to 𝑙𝑘). <br> <br>
+		Pick any free student, say s_i, and get the highest ranked project among the 
+		student's preference list 
+		which he/she has not yet proposed to and lets say its p_j.<br><br>
 
-		  If 𝑝𝑗 is over-subscribed, then the worst student 𝑠𝑟 assigned to 𝑝𝑗 is rejected. The pair 
-		  (𝑠𝑟,𝑝𝑗) will be deleted by the subsequent conditional that tests for 𝑝𝑗 being full. The pair (𝑠𝑟,𝑝𝑡) 
-		  will be deleted by either of the two subsequent conditionals, where 𝑝𝑡 was the project most recently assigned 𝑠𝑟.
-		  <br> <br>
+		p_j evaluates 
 
-		  If the project is full (i.e., at capacity), the lecturer removes from the project's preference <br>
-		   list all students less preferred than the worst currently assigned student.
+		 <ul>
+			<li> If p_j has a free slot, it provisionally accepts s_i.</li>
+			<li> If p_j is full, it compares $s_i$ to the least preferred student currently in the project. 
+				If s_i is ranked higher than the least preferred student, it accepts s_i(then the least 
+				preferred student gets added back to free list), else rejects(s_i would still be free).</li>
+			<li>
+				Deletion rule : if s_i is accepted by p_j, all the students ranked below s_i in p_j's 
+				preference list are removed. This is 
+				one of the ways to prune the search space of potential matches, thereby getting a convergible solution.
+			</li>
+		 </ul>
 
-		   <br> <br>
-		   The algorithm ends when every free student has an empty preference list (i.e. cannot propose any further)
-		    or all students have been provisionally assigned. The final matching is then the set of provisional assignments.
-			<br>
-			<br>
+		 This loop continues until all the slots are tentatively assigned to some 
+		 student or till all the slots have traversed all their preferences. <br><br>
+
+		
 
 			<strong>Outcome : Student optimal </strong>  allocations (i.e., it prioritises the student preferences over faculty)
 

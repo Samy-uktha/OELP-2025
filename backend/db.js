@@ -2,24 +2,24 @@ require("dotenv").config();
 const { Pool } = require("pg");
 // const { io } = require('./server');
 
-// const pool = new Pool({
-//   user: "postgres", // Replace with your actual username
-//   host: "localhost",
-//   database: "ProjectAllotment",
-//   password: "postgres",
-//   port: 5432,
-// });
-
 const pool = new Pool({
-  user: "postgres_pal", 
-  host: "dpg-d08k91pr0fns73a11q1g-a.oregon-postgres.render.com",
-  database: "project_allotment_ogqm",
-  password: "i4msCXk2lL9Kqz2MPRkhx8BRmqkcvqJH",
+  user: "postgres", // Replace with your actual username
+  host: "localhost",
+  database: "ProjectAllotment",
+  password: "postgres",
   port: 5432,
-  ssl: {
-    rejectUnauthorized: false
-  }
 });
+
+// const pool = new Pool({
+//   user: "postgres_pal", 
+//   host: "dpg-d08k91pr0fns73a11q1g-a.oregon-postgres.render.com",
+//   database: "project_allotment_ogqm",
+//   password: "i4msCXk2lL9Kqz2MPRkhx8BRmqkcvqJH",
+//   port: 5432,
+//   ssl: {
+//     rejectUnauthorized: false
+//   }
+// });
 
 // Fetch student and faculty preferences
 async function getPreferences() {

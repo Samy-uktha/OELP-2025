@@ -10,25 +10,25 @@
 
     <div class="col-md-6 mb-3">
       <label class="form-label">Minimum CGPA:</label>
-      <input type="number" class="form-control" [(ngModel)]="newProject.min_cgpa" name="minCgpa" required />
+      <input type="number" class="form-control" [(ngModel)]="newProject.min_cgpa" name="minCgpa" required min="1.01"/>
     </div>
   </div>
 
   <div class="row">
     <div class="col-md-6 mb-3">
       <label class="form-label">Available Slots:</label>
-      <input type="number" class="form-control" [(ngModel)]="newProject.available_slots" name="availableSlots" required />
+      <input type="number" class="form-control" [(ngModel)]="newProject.available_slots" name="availableSlots" required min="1" />
     </div>
 
     <div class="col-md-6 mb-3">
       <label class="form-label">Students Per Team:</label>
-      <input type="number" class="form-control" [(ngModel)]="newProject.students_per_team" name="studentsPerTeam" required />
+      <input type="number" class="form-control" [(ngModel)]="newProject.students_per_team" name="studentsPerTeam" required min="1" />
     </div>
   </div>
 
   <div class="mb-3">
     <label class="form-label">Minimum year:</label>
-    <input type="number" class="form-control" [(ngModel)]="newProject.min_year" name="min_year" required />
+    <input type="number" class="form-control" [(ngModel)]="newProject.min_year" name="min_year" required min="1" />
   </div>
 
   <div class="mb-3">
@@ -41,11 +41,20 @@
   <div class="mb-3 position-relative">
     <input type="text" class="form-control" [(ngModel)]="searchQuery" [ngModelOptions]="{standalone: true}" (input)="searchCourses()" placeholder="Search courses..." />
 
-    <ul class="list-group position-absolute w-100 shadow" *ngIf="filteredCourses.length > 0">
-      <li class="list-group-item list-group-item-action" *ngFor="let course of filteredCourses" (click)="selectCourse(course)">
-        {{ course.course_name }} ({{ course.course_code }}) - {{ course.credits }} credits
-      </li>
-    </ul>
+    <ul
+  class="list-group position-absolute w-100 shadow"
+  style="max-height: 200px; overflow-y: auto; z-index: 1000;"
+  *ngIf="filteredCourses.length > 0"
+>
+  <li
+    class="list-group-item list-group-item-action"
+    *ngFor="let course of filteredCourses"
+    (click)="selectCourse(course)"
+  >
+    {{ course.course_name }} ({{ course.course_code }}) - {{ course.credits }} credits
+  </li>
+</ul>
+
   </div>
 
   <!-- Selected Prerequisites -->
@@ -59,11 +68,25 @@
   <div class="mb-3 position-relative">
     <input type="text" class="form-control" [(ngModel)]="searchQuery_dept" [ngModelOptions]="{standalone: true}" (input)="searchDept()" placeholder="Search department..." />
 
-    <ul class="list-group position-absolute w-100 shadow" *ngIf="filteredDept.length > 0">
+    <!-- <ul class="list-group position-absolute w-100 shadow" *ngIf="filteredDept.length > 0">
       <li class="list-group-item list-group-item-action" *ngFor="let dept of filteredDept" (click)="selectDept(dept)">
         {{ dept.dept_name }}
       </li>
-    </ul>
+    </ul> -->
+
+    <ul
+  class="list-group position-absolute w-100 shadow"
+  style="max-height: 200px; overflow-y: auto; z-index: 1000;"
+  *ngIf="filteredDept.length > 0"
+>
+  <li
+    class="list-group-item list-group-item-action"
+    *ngFor="let dept of filteredDept"
+    (click)="selectDept(dept)"
+  >
+    {{ dept.dept_name }} - ({{ dept.dept_id }})
+  </li>
+</ul>
   </div>
 
   <!-- Selected Departments -->
@@ -94,5 +117,7 @@
 
   <button type="submit" class="btn btn-success w-100 mt-3">Add Project</button>
 </form>
+
+<button type="button" class="btn btn-primary w-100 mt-3" (click)="back()">Back</button>
 
 <p *ngIf="successMessage" class="text-success text-center mt-3">{{ successMessage }}</p>
