@@ -135,8 +135,8 @@ export class HomeComponent {
       ? this.eligibleProjects
       : this.availableProjects;
 
-      console.log("projetcs", baseProjects)
-      console.log("selected branch codes", this.selectedBranchCodes)
+      // console.log("projetcs", baseProjects)
+      // console.log("selected branch codes", this.selectedBranchCodes)
       
   
     if (this.selectedBranchCodes.length === 0) {
@@ -273,8 +273,6 @@ export class HomeComponent {
     });
   }
 
-
-
   savePreferences() {
     if (!this.applied || this.applied.length === 0) return;
 
@@ -343,12 +341,12 @@ export class HomeComponent {
       this.availableProjects = this.allProjects.filter((project) => {
         const isApplied = this.applied.includes(project.title);
         if (isApplied) {
-          console.log(`Skipping applied project: ${project.title}`);
+          // console.log(`Skipping applied project: ${project.title}`);
         }
         return !isApplied;
       });
 
-      console.log('Available projects:', this.availableProjects);
+      // console.log('Available projects:', this.availableProjects);
     }
   }
 
