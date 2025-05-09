@@ -15,7 +15,7 @@
                   <button
                     class="btn btn-outline-primary btn-sm px-3"
                     (click)="setpreferencce()"
-                    [disabled]="applications.length === 0||!preferencesPhase"
+                    [disabled]="applications.length === 0 || !preferencesPhase"
                   >
                     <i class="bi bi-check-circle"></i> Set Preference
                   </button>
@@ -60,7 +60,7 @@
               </div>
 
               <!-- Allocations Section -->
-              <ng-container *ngIf="!preferencesPhase && !applicationPhase">
+              <ng-container *ngIf="allocationPhase">
                 <div class="card shadow-lg border-0 rounded-4 mt-4">
                   <div class="card-header bg-primary text-white text-center">
                     <h3 class="mb-0">Allocations</h3>
@@ -187,7 +187,7 @@
                     <!-- <div *ngIf="isBoston"></div> -->
 
                     <!-- Boston Mechanism Allocations -->
-                    <div
+                    <!-- <div
                       *ngIf="isBoston"
                       class="card shadow-lg border-0 rounded-4 mt-4"
                     >
@@ -289,7 +289,106 @@
                           </p>
                         </ng-template>
                       </div>
+                    </div> -->
+
+                    <div *ngIf="isBoston" class="card shadow-lg border-0 rounded-4 mt-4">
+                      <div class="card-body">
+                        <div class="container mt-4">
+                          <div class="card p-4">
+                            <h4 class="mb-4 text-primary">Drag to Set Allocation Priorities</h4>
+                    
+                            <div cdkDropList (cdkDropListDropped)="drop($event)" class="list-group">
+                              <div
+                                *ngFor="let item of priorities; let i = index"
+                                cdkDrag
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                              >
+
+                                <!-- {{ item.label}}
+                                <div>
+                                  <span class="bi bi-x-circle text-danger me-3" style="cursor:pointer" (click)="removePriority(i)"></span>
+                                  <span class="bi bi-list drag-handle" cdkDragHandle></span>
+                                </div> -->
+                                <div>
+                                  <strong>{{ item.label }}</strong>
+                                  <span class="text-muted ms-2">({{ prioritiesWithWeights[i].weight }}%)</span>
+                                </div>
+                                <div>
+                                  <span class="bi bi-x-circle text-danger me-3" style="cursor:pointer" (click)="removePriority(i)"></span>
+                                  <span class="bi bi-list drag-handle" cdkDragHandle></span>
+                                </div>
+
+                              </div>
+                            </div>
+
+                            <div *ngIf="removedPriorities.length > 0" class="mt-4">
+                              <h6 class="text-secondary">Add Removed Criteria</h6>
+                              <div class="d-flex flex-wrap gap-2">
+                                <button
+                                  *ngFor="let removed of removedPriorities"
+                                  class="btn btn-outline-primary btn-sm"
+                                  (click)="addPriority(removed)"
+                                >
+                                  {{ removed.label }}
+                                </button>
+                              </div>
+                            </div>
+                    
+                            <div class="text-center mt-4">
+                              <button class="btn btn-success px-4" (click)="generateBostonAllocations()">
+                                Generate Allocations
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                    
+                        <!-- Allocation Results Table -->
+                        <div class="p-4">
+                          <div *ngIf="bostonAllocations.length > 0; else noBostonAllocations">
+                            <h4 class="mb-4 text-primary">Boston Allocations</h4>
+                            <table class="table table-hover text-center align-middle">
+                              <thead class="table-light">
+                                <tr>
+                                  <th>ID</th>
+                                  <th>Student Name</th>
+                                  <th>Roll Number</th>
+                                  <th>Department</th>
+                                  <th>Year</th>
+                                  <th>CGPA</th>
+                                  <th>Match Score</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr
+                                  *ngFor="let allocation of bostonAllocations | paginate : { itemsPerPage: 10, currentPage: page }"
+                                  class="table-light"
+                                >
+                                  <td>{{ allocation.application_id }}</td>
+                                  <td>{{ allocation.name }}</td>
+                                  <td>{{ allocation.roll_no }}</td>
+                                  <td>{{ allocation.department }}</td>
+                                  <td>{{ allocation.year }}</td>
+                                  <td>{{ allocation.cgpa }}</td>
+                                  <td class="fw-bold text-success">{{ allocation.score }}</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                            <div class="card-footer bg-light text-center">
+                              <pagination-controls
+                                (pageChange)="page = $event"
+                                class="d-flex justify-content-center"
+                              ></pagination-controls>
+                            </div>
+                          </div>
+                        </div>
+                    
+                        <ng-template #noBostonAllocations>
+                          <p class="text-secondary">No Boston Mechanism allocations available.</p>
+                        </ng-template>
+                      </div>
                     </div>
+                    
+
                   </div>
                 </div>
               </ng-container>
@@ -346,6 +445,10 @@
                   </span>
                 </div>
               </div>
+
+              <!-- <div class="mb-4">
+                <label class="form-label fw-bold">Completed Courses</label>
+              </div> -->
         
               <!-- Divider -->
               <hr class="my-4">

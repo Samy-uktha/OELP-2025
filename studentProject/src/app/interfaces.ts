@@ -54,6 +54,7 @@ export interface project{
 	project_id : number,
 	title : string,
 	faculty_name : string,
+	faculty_id : number,
 	min_cgpa : number,
 	description : string,
 	available_slots : number,

@@ -22,6 +22,7 @@ export class ApplicationDataService {
       return this.http.get<application[]>(`${this.apiUrl}/${id}`).pipe(
         map((data: any[]) =>
           data.map((application) => ({
+            
             application_id : application.application_id,
             name : application.name,
             cgpa : application.cgpa,

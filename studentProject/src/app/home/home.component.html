@@ -152,6 +152,25 @@
                   </h4>
                 </div>
                 <div class="card-body">
+                  
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Filter by Branch:</label>
+                    <div class="d-flex flex-wrap gap-3">
+                      <div class="form-check form-check-inline" *ngFor="let branch of branchList">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          [value]="branch.code"
+                          (change)="updateBranchFilter($event)"
+                          [id]="'branch-' + branch.code"
+                        />
+                        <label class="form-check-label" [for]="'branch-' + branch.code">
+                          {{ branch.label }}
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                                    
                   <table class="table table-striped">
                     <thead>
                       <tr>
@@ -163,7 +182,60 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr
+                      <ng-container
+  *ngFor="let project of getFilteredProjects()"
+>
+  <!-- Main Project Row -->
+  <tr (click)="toggleProjectDescription(project.title)" style="cursor: pointer;">
+    <td>{{ project.title }}</td>
+    <td>{{ project.faculty_name }}</td>
+    <td *ngIf="project.department">
+      <!-- {{project.faculty_id}} -->
+      <div *ngFor="let dept of project.department">
+        {{ dept.dept_name }}
+      </div>
+    </td>
+    <td>{{ project.min_year }}</td>
+    <td>
+      <button
+        class="btn btn-sm"
+        [ngClass]="
+          applied.includes(project.title)
+            ? 'btn-success'
+            : 'btn-primary'
+        "
+        (click)="apply(project, $event); $event.stopPropagation()"
+        [disabled]="!applicationPhase"
+      >
+        <i
+          class="bi"
+          [ngClass]="
+            applied.includes(project.title)
+              ? 'bi-check2-circle'
+              : 'bi-plus-circle'
+          "
+        ></i>
+        {{
+          applied.includes(project.title)
+            ? ' Applied'
+            : ' Apply'
+        }}
+      </button>
+    </td>
+  </tr>
+
+  <!-- Description Row -->
+  <tr *ngIf="openedProjectTitle === project.title">
+    <td colspan="5">
+      <div class="card p-3">
+        <strong>Description:</strong>
+        {{ project.description }}
+      </div>
+    </td>
+  </tr>
+</ng-container>
+
+                      <!-- <tr
                         *ngFor="
                           let project of selectedTab === 'all'
                             ? allProjects
@@ -174,7 +246,6 @@
                       >
                         <td>{{ project.title }}</td>
                         <td>{{ project.faculty_name }}</td>
-                        <!-- <td>{{ project.department?.join(', ') }}</td> -->
                         <td *ngIf="project.department">
                           <div *ngFor="let dept of project.department">
                             {{ dept.dept_name }}
@@ -208,7 +279,7 @@
                             }}
                           </button>
                         </td>
-                      </tr>
+                      </tr> -->
                     </tbody>
                   </table>
                 </div>

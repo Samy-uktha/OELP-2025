@@ -461,10 +461,6 @@ app.get("/department", async (req, res) => {
 
 
 
-
-
-
-
 app.post("/add_application", async (req, res) => {
     try {
         const { student_id, project_id, bio, docs } = req.body;
@@ -773,8 +769,8 @@ app.get('/Allocations_boston', async (req, res) => {
 });
 app.get('/Allocations_boston/:id', async (req,res) => {
     try {
-        await saveAllocations_boston();
-        console.log("boston req",req.params)
+        // await saveAllocations_boston();
+        console.log("boston get request",req.params)
         const id = req.params.id;
         const studResult = await pool.query(
             `SELECT a.Application_id, s.firstName || ' ' || s.lastName as name , s.cgpa, s.Roll_no, s.year, a.Status, 
@@ -790,7 +786,7 @@ app.get('/Allocations_boston/:id', async (req,res) => {
         );
         applications = studResult.rows;
         res.json(applications);
-        console.log(applications)
+        console.log("boston applications are",applications)
     }   
     catch (err) {
     console.error(err);
@@ -799,6 +795,7 @@ app.get('/Allocations_boston/:id', async (req,res) => {
 });
 app.post('/Allocations_boston', async (req, res) => {
     try {
+        console.log("received priorities:", req.body)
       const priorities = req.body.priorities; // e.g., { first: 'prereq', second: 'department', third: 'year' }
       const allocations = await saveAllocations_boston(priorities);
       res.status(200).json({ message: 'Boston mechanism allocations saved.', allocations });

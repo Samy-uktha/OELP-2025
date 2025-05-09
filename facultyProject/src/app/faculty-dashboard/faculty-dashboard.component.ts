@@ -68,24 +68,49 @@ export class FacultyDashboardComponent {
   
   }
 
-  onPhaseChanged(phase: any) {
-    this.currentPhase = phase;
-    console.log('Current Phase:', phase);
-    if (phase.phase_number == 1) {
-      this.proposalPhase = true
-    }
-    if (phase.phase_number == 2) {
-      this.applicationPhase = true
-    }
-    if (phase.phase_number == 3) {
-      this.preferencesPhase = true
-    }
-    if (phase.phase_number == 4) {
-      this.allocationPhase = true
-    }
-    else {
+  // onPhaseChanged(phase: any) {
+  //   this.currentPhase = phase;
+  //   console.log('Current Phase:', phase);
+  //   if (phase.phase_number == 1) {
+  //     this.proposalPhase = true
+  //   }
+  //   if (phase.phase_number == 2) {
+  //     this.applicationPhase = true
+  //   }
+  //   if (phase.phase_number == 3) {
+  //     this.preferencesPhase = true
+  //   }
+  //   if (phase.phase_number == 4) {
+  //     this.allocationPhase = true
+  //   }
+  //   else {
 
+  //   }
+
+  onPhaseChanged(phase : any) {
+    this.currentPhase = phase;
+    console.log("current phase:", phase)
+    if (!phase || phase.phase_number == null) {
+      // If phase is null or phase_number is undefined/null
+      this.proposalPhase = true;
+      this.applicationPhase = true;
+      this.preferencesPhase = true;
+      this.allocationPhase = true;
+    } else {
+      if (phase.phase_number == 1) {
+        this.proposalPhase = true;
+      }
+      if (phase.phase_number == 2) {
+        this.applicationPhase = true;
+      }
+      if (phase.phase_number == 3) {
+        this.preferencesPhase = true;
+      }
+      if (phase.phase_number == 4) {
+        this.allocationPhase = true;
+      }
     }
+  
   
     // // Example logic: disable tab if not Phase 3
     // if (phase?.phase_number !== 3) {

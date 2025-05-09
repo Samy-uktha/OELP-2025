@@ -25,7 +25,7 @@
 				   [class.active]="selectedTab === 'applications'"
 				   role="button"
 				   (click)="toggleApplications()"
-				   [class.disabled]="proposalPhase">
+				   [class.disabled]="!applicationPhase || !preferencesPhase || !allocationPhase">
 				  <i class="bi bi-clipboard-check"></i> Applications
 				  <i [class.bi-chevron-down]="showDropdown"
 					 [class.bi-chevron-right]="!showDropdown"
