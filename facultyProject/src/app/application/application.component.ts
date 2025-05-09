@@ -1,5 +1,5 @@
 import { Component, input, Input, OnInit, SimpleChanges } from '@angular/core';
-import { application, project } from '../models';
+import { application, project, Priority } from '../models';
 import { CommonModule } from '@angular/common';
 import { ApplicationDataService } from '../application-data.service';
 import { NgxPaginationModule } from 'ngx-pagination';
@@ -43,16 +43,51 @@ export class ApplicationComponent {
   bostonAllocations: any[] = [];
   isBoston: boolean = false;
 
-  priorities = [
-    { label: 'Department Match', value: 'department' },
-    { label: 'Year Eligibility', value: 'year' },
-    { label: 'Prerequisite Courses Completion', value: 'prereq' },
+  // priorities = [
+  //   { label: 'Department Match', value: 'department' },
+  //   { label: 'Year Eligibility', value: 'year' },
+  //   { label: 'Prerequisite Courses Completion', value: 'prereq' },
+  //   { label: 'CGPA', value: 'cgpa'},
+  // ];
+
+  priorities: Priority[] = [
+    { key: 'year', value:'year', label: 'Year Eligibility'},
+    { key: 'department',  value:'department', label: 'Department Match'  },
+    { key: 'prereq', value: 'prereq' , label: 'Prerequisite Courses Completion'},
+    { key: 'cgpa',  value: 'cgpa', label: 'CGPA'  }
   ];
+  removedPriorities: Priority[] = []
+
+  weightSets:  { [key: number]: number[] } = {
+    4: [10, 20, 30, 40],
+    3: [10, 30, 60],
+    2: [30, 70],
+    1: [100]
+  };
 
   drop(event: CdkDragDrop<any[]>) {
     moveItemInArray(this.priorities, event.previousIndex, event.currentIndex);
     console.log('New Order:', this.priorities);
   }
+  removePriority(index: number) {
+    // this.priorities.splice(index, 1);
+    const removed = this.priorities.splice(index, 1)[0];
+    this.removedPriorities.push(removed);
+  }
+  addPriority(item: any) {
+    this.priorities.push(item);
+    this.removedPriorities = this.removedPriorities.filter(p => p.key !== item.key);
+  }
+  get prioritiesWithWeights() {
+    const length = this.priorities.length;
+    const weights = this.weightSets[length]?.slice().reverse() || [];
+
+    return this.priorities.map((priority, index) => ({
+      ...priority,
+      weight: weights[index] ?? 0
+    }));
+  }
+  
 
   isUpdating = false;
 
@@ -146,11 +181,27 @@ export class ApplicationComponent {
   }
 
   generateBostonAllocations() {
-    const priorities = {
-      first: this.priorities[0].value,
-      second: this.priorities[1].value,
-      third: this.priorities[2].value,
-    };
+    // const priorities = {
+    //   first: this.priorities[0].value,
+    //   second: this.priorities[1].value,
+    //   third: this.priorities[2].value,
+    //   fourth: this.priorities[3].value
+    // };
+
+    // const weightSets:  { [key: number]: number[] } = {
+    //   4: [10, 20, 30, 40],
+    //   3: [10, 30, 60],
+    //   2: [30, 70],
+    //   1: [100]
+    // };
+
+    const weights: { [key: string]: number } = {};
+    const currentWeights = this.weightSets[this.priorities.length] || [];
+
+    this.priorities.forEach((criterion, index) => {
+      weights[criterion.key] = currentWeights[index] || 0;
+    });
+    const priorities = Object.entries(weights).map(([key, value]) => ({key,value}));
 
     this.http
       .post('http://localhost:5001/Allocations_boston', { priorities })

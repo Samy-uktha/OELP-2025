@@ -63,3 +63,9 @@ export interface preference{
 	name : string,
 	rank : number
 }
+
+export interface Priority {
+	key: string;
+	value: string;
+	label: string;
+  }
